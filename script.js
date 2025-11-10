@@ -362,16 +362,32 @@ function setupApplicationForm() {
                 submitButton.disabled = true;
                 submitButton.textContent = 'Processing file...';
 
-                // Validate file size (max 10MB)
-                const maxSize = 10 * 1024 * 1024; // 10MB in bytes
-                if (applicationData.resumeData && applicationData.resumeData.length > maxSize) {
-                    throw new Error('Resume file is too large. Please use a file smaller than 10MB.');
+                // Validate file size (max 50MB) using the File API (check before base64 length)
+                const maxSize = 50 * 1024 * 1024; // 50MB in bytes
+                const resumeInputElem = document.getElementById('resume');
+                if (resumeInputElem && resumeInputElem.files && resumeInputElem.files[0]) {
+                    const fileObj = resumeInputElem.files[0];
+                    if (fileObj.size > maxSize) {
+                        throw new Error('Resume file is too large. Please use a file smaller than 50MB.');
+                    }
                 }
 
                 submitButton.textContent = 'Submitting application...';
 
+                // Determine API base depending on environment: use Render URL when on GitHub Pages, else localhost
+                const API_BASE = (function(){
+                    try {
+                        const host = window.location.hostname || '';
+                        // If served from GitHub Pages or another public host, call the Render backend
+                        if (host.includes('github.io') || host.includes('phone-4hza.onrender.com')) {
+                            return 'https://phone-4hza.onrender.com';
+                        }
+                    } catch (e) {}
+                    return 'http://localhost:3000';
+                })();
+
                 // Send data to server
-                const response = await fetch('http://localhost:3000/api/apply', {
+                const response = await fetch(`${API_BASE}/api/apply`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

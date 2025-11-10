@@ -99,8 +99,8 @@ module.exports = {
                     }
                     const buffer = Buffer.from(base64Data, 'base64');
                     
-                    // Validate file size (max 10MB)
-                    if (buffer.length > 10 * 1024 * 1024) {
+                    // Validate file size (max 50MB)
+                    if (buffer.length > 50 * 1024 * 1024) {
                         throw new Error('File too large');
                     }
                     

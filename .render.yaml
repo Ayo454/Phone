@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: student-jobs
+    env: node
+    plan: free
+    # Replace the repo value with your GitHub repository URL, for example:
+    # repo: https://github.com/your-username/student-jobs
+    repo: https://github.com/ayo454/student-jobs
+    branch: main
+    buildCommand: ''
+    startCommand: 'npm start'

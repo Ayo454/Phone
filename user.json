@@ -76,5 +76,33 @@
     "receivedAt": "2025-11-10T10:43:13.860Z",
     "emailSent": false,
     "emailError": "Missing credentials for \"PLAIN\""
+  },
+  {
+    "fullName": "Oluniyi Funmilayo Abigeli",
+    "email": "ayomideoluniyi49@gmail.com",
+    "phone": "09138154963",
+    "education": "master",
+    "dob": "2025-09-12",
+    "country": "United States",
+    "resume": "OLUNIYI, AYOMIDE AMOS.pdf",
+    "resumePath": "uploads\\1762771754119-OLUNIYI, AYOMIDE AMOS.pdf",
+    "coverLetter": "sid",
+    "receivedAt": "2025-11-10T10:49:15.438Z",
+    "emailSent": false,
+    "emailError": "Missing credentials for \"PLAIN\""
+  },
+  {
+    "fullName": "Oluniyi Funmilayo Abigeli",
+    "email": "ayomideoluniyi49@gmail.com",
+    "phone": "09138154963",
+    "education": "associate",
+    "dob": "2025-10-29",
+    "country": "Canada",
+    "resume": "OLUNIYI, AYOMIDE AMOS.pdf",
+    "resumePath": "uploads\\1762771804800-OLUNIYI, AYOMIDE AMOS.pdf",
+    "coverLetter": "kd",
+    "receivedAt": "2025-11-10T10:50:05.350Z",
+    "emailSent": false,
+    "emailError": "Missing credentials for \"PLAIN\""
   }
 ]

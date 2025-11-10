@@ -27,6 +27,11 @@ app.use('/uploads', express.static(uploadsDir));
 app.get('/api/applicants', userHandler.getApplicants);
 app.post('/api/apply', userHandler.handleApplication);
 
+// Health check for Render / uptime monitoring
+app.get('/health', (req, res) => {
+	res.json({ ok: true, env: process.env.NODE_ENV || 'development', time: new Date().toISOString() });
+});
+
 // Quick env warning (emails rely on these)
 const missingEnvs = [];
 if (!process.env.EMAIL_USER) missingEnvs.push('EMAIL_USER');
