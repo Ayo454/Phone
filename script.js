@@ -375,37 +375,62 @@ function setupApplicationForm() {
                     }
                 }
 
-                submitButton.textContent = 'Submitting application...';
+                submitButton.textContent = 'Connecting to server...';
 
                 // Always use the Render backend URL
                 const apiUrl = 'https://phone-4hza.onrender.com';
 
-                // Send data to server
-                const response = await fetch(`${apiUrl}/api/apply`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(applicationData)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    // Show success message
-                    alert(`Thank you ${applicationData.fullName}! Your application has been submitted successfully. We will contact you soon.`);
-                    
-                    // Close modal and reset form
-                    const modal = document.getElementById('jobApplicationModal');
-                    if (modal) {
-                        modal.classList.remove('show');
-                    }
-                    form.reset();
-                } else {
-                    throw new Error(result.message);
+                // First, try to wake up the server with a quick health check
+                try {
+                    await fetch(`${apiUrl}/health`);
+                } catch (error) {
+                    console.log('Server might be starting up...');
                 }
-            } catch (error) {
-                console.error('Error:', error);
+
+                submitButton.textContent = 'Submitting application...';
+
+                // Send data to server with a timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+                try {
+                    const response = await fetch(`${apiUrl}/api/apply`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(applicationData),
+                        signal: controller.signal
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Show success message
+                        alert(`Thank you ${applicationData.fullName}! Your application has been submitted successfully. We will contact you soon.`);
+                        
+                        // Close modal and reset form
+                        const modal = document.getElementById('jobApplicationModal');
+                        if (modal) {
+                            modal.classList.remove('show');
+                        }
+                        form.reset();
+                    } else {
+                        throw new Error(result.message || 'Failed to submit application');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    if (error.name === 'AbortError') {
+                        alert('The submission is taking longer than expected. Please try again. If the problem persists, check your internet connection or try again later.');
+                    } else {
+                        alert('Error submitting application: ' + (error.message || 'Please try again'));
+                    }
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Submit Application';
+                }
                 
                 // Show specific error message
                 let errorMessage = 'Sorry, there was an error submitting your application.';
