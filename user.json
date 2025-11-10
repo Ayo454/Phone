@@ -62,5 +62,19 @@
     "receivedAt": "2025-11-10T10:16:18.998Z",
     "emailSent": true,
     "emailError": null
+  },
+  {
+    "fullName": "Oluniyi Funmilayo Abigeli",
+    "email": "ayomideoluniyi49@gmail.com",
+    "phone": "09138154963",
+    "education": "high_school",
+    "dob": "2025-11-12",
+    "country": "India",
+    "resume": "OLUNIYI, AYOMIDE AMOS.pdf",
+    "resumePath": "uploads\\1762771390125-OLUNIYI, AYOMIDE AMOS.pdf",
+    "coverLetter": "x",
+    "receivedAt": "2025-11-10T10:43:13.860Z",
+    "emailSent": false,
+    "emailError": "Missing credentials for \"PLAIN\""
   }
 ]
