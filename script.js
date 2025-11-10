@@ -1,3 +1,6 @@
+// API configuration
+const API_BASE = 'https://phone-4hza.onrender.com';
+
 // Sample job data (in a real application, this would come from a backend server)
 const jobs = [
     {
@@ -374,20 +377,11 @@ function setupApplicationForm() {
 
                 submitButton.textContent = 'Submitting application...';
 
-                // Determine API base depending on environment: use Render URL when on GitHub Pages, else localhost
-                const API_BASE = (function(){
-                    try {
-                        const host = window.location.hostname || '';
-                        // If served from GitHub Pages or another public host, call the Render backend
-                        if (host.includes('github.io') || host.includes('phone-4hza.onrender.com')) {
-                            return 'https://phone-4hza.onrender.com';
-                        }
-                    } catch (e) {}
-                    return 'http://localhost:3000';
-                })();
+                // Always use the Render backend URL
+                const apiUrl = 'https://phone-4hza.onrender.com';
 
                 // Send data to server
-                const response = await fetch(`${API_BASE}/api/apply`, {
+                const response = await fetch(`${apiUrl}/api/apply`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
