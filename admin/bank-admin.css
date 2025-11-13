@@ -181,6 +181,14 @@ body {
     gap: 20px;
 }
 
+/* Server info chip in the header (moved from inline styles) */
+.server-info {
+    margin-left: 12px;
+    align-self: center;
+    font-size: 0.9rem;
+    color: #666;
+}
+
 .search-bar {
     display: flex;
     align-items: center;

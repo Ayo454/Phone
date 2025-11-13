@@ -33,12 +33,123 @@ let allApplications = [];
 let allTransfers = [];
 let allRegisteredAccounts = [];
 
+// Built-in fallback registered accounts (mirrors data/registeredBankAccounts.json)
+const FALLBACK_REGISTERED_ACCOUNTS = [
+    {
+        "id": "demo-reg-001",
+        "bank": "Zenith Bank",
+        "accountNumber": "1234512345",
+        "accountHolderName": "Ahmed Hassan",
+        "country": "NG",
+        "status": "registered",
+        "registeredAt": "2025-11-13T02:30:00.000Z",
+        "verifiedAt": "2025-11-13T02:30:00.000Z"
+    },
+    {
+        "id": "demo-reg-002",
+        "bank": "GTBank",
+        "accountNumber": "0140149185",
+        "accountHolderName": "Chioma Eze",
+        "country": "NG",
+        "status": "registered",
+        "registeredAt": "2025-11-13T02:30:00.000Z",
+        "verifiedAt": "2025-11-13T02:30:00.000Z"
+    },
+    {
+        "id": "demo-reg-003",
+        "bank": "Access Bank",
+        "accountNumber": "1234567890",
+        "accountHolderName": "Tunde Adeyemi",
+        "country": "NG",
+        "status": "registered",
+        "registeredAt": "2025-11-13T02:30:00.000Z",
+        "verifiedAt": "2025-11-13T02:30:00.000Z"
+    },
+    {
+        "id": "demo-reg-004",
+        "bank": "Opay",
+        "accountNumber": "9876543210",
+        "accountHolderName": "Zainab Mohammed",
+        "country": "NG",
+        "status": "registered",
+        "registeredAt": "2025-11-13T02:30:00.000Z",
+        "verifiedAt": "2025-11-13T02:30:00.000Z"
+    },
+    {
+        "id": "demo-reg-005",
+        "bank": "Canadian Bank",
+        "accountNumber": "2075861747",
+        "accountHolderName": "Oluniyi Funmilayo Abigeli",
+        "country": "CA",
+        "status": "registered",
+        "registeredAt": "2025-11-13T06:00:00.000Z",
+        "verifiedAt": "2025-11-13T06:00:00.000Z"
+    }
+];
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
+    // Check server health/info first (updates header badge), then load data
+    loadServerInfo();
     loadApplications();
     updateStats();
 });
+
+// Load server health and show startup marker / commit if available
+async function loadServerInfo() {
+    const el = document.getElementById('serverInfo');
+    if (!el) return;
+    try {
+        const resp = await fetch(`${API_BASE_URL}/__health`);
+        if (resp.ok) {
+            const j = await resp.json();
+            const marker = j.startup_marker || j.commit || '';
+            el.textContent = `Server: live ${marker ? `(${marker})` : ''}`;
+            el.style.color = '#0b8a3e';
+            return;
+        }
+        el.textContent = `Server: unreachable (status ${resp.status})`;
+        el.style.color = '#aa7700';
+    } catch (err) {
+        el.textContent = 'Server: unreachable (using fallback)';
+        el.style.color = '#888';
+        // Add a retry control so the admin can try reconnecting without reloading the page
+        addServerRetryButton(el);
+    }
+}
+
+function addServerRetryButton(containerEl) {
+    // Avoid adding multiple buttons
+    if (document.getElementById('serverRetryBtn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'serverRetryBtn';
+    btn.textContent = 'Retry';
+    btn.title = 'Retry server connection';
+    btn.style.marginLeft = '12px';
+    btn.style.padding = '4px 8px';
+    btn.style.fontSize = '0.85rem';
+    btn.onclick = async () => {
+        btn.disabled = true;
+        btn.textContent = 'Checking...';
+        try {
+            await loadServerInfo();
+            // also attempt loading applications again when server comes back
+            await loadApplications();
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Retry';
+        }
+    };
+    containerEl.appendChild(btn);
+}
+
+function updateServerInfoDataLabel(source) {
+    const el = document.getElementById('serverInfo');
+    if (!el) return;
+    const base = (el.textContent || '').replace(/\s*\|\s*Data:.*/,'');
+    el.textContent = `${base} | Data: ${source}`;
+}
 
 // Setup Event Listeners
 function setupEventListeners() {
@@ -94,29 +205,81 @@ function updateActiveLink(link) {
 
 // Load Applications
 async function loadApplications() {
+    // Try fetching from API, but have a few local static fallbacks for offline/workspace usage
+    const localCandidates = [
+        // Prefer top-level pendingApplications.json in the repo (common location)
+        './pendingApplications.json',
+        '../pendingApplications.json',
+        '/pendingApplications.json',
+        'pendingApplications.json',
+        // Also try older data/ locations
+        './data/pendingApplications.json',    // admin/data (if present)
+        '../data/pendingApplications.json',   // repository data folder when opened from admin/ directory
+        '/data/pendingApplications.json',     // absolute path from site root
+        'data/pendingApplications.json'       // relative path fallback
+    ];
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/applications`);
         if (response.ok) {
             const result = await response.json();
             // Handle both formats: direct array or wrapped in data property
             allApplications = Array.isArray(result) ? result : (result.data || []);
+            updateServerInfoDataLabel('server');
         } else {
-            // Fallback: Load from local file
-            allApplications = loadFromLocalStorage();
+            // Try local static JSON files before falling back to localStorage
+            const local = await tryLocalJson(localCandidates);
+            if (local) {
+                allApplications = Array.isArray(local) ? local : (local.data || []);
+                updateServerInfoDataLabel('static-local');
+            } else {
+                allApplications = loadFromLocalStorage();
+                updateServerInfoDataLabel('fallback-storage');
+            }
         }
-        
+
         // Load transfers
-            await loadTransfers();
-            // Load registered bank accounts (for active accounts view)
-            await loadRegisteredAccounts();
-        
+        await loadTransfers();
+        // Load registered bank accounts (for active accounts view)
+        await loadRegisteredAccounts();
+
         populateTables();
         updateStats();
     } catch (error) {
         console.error('Error loading applications:', error);
-        allApplications = loadFromLocalStorage();
+        // Likely network error: attempt local JSON fallbacks then localStorage
+        try {
+            const local = await tryLocalJson(localCandidates);
+            if (local) {
+                allApplications = Array.isArray(local) ? local : (local.data || []);
+                updateServerInfoDataLabel('static-local');
+            } else {
+                allApplications = loadFromLocalStorage();
+                updateServerInfoDataLabel('fallback-storage');
+            }
+        } catch (err) {
+            console.warn('Local fallback attempt failed:', err);
+            allApplications = loadFromLocalStorage();
+            updateServerInfoDataLabel('fallback-storage');
+        }
+
         populateTables();
     }
+}
+
+// Try several local JSON file paths (useful when working in the repo offline)
+async function tryLocalJson(paths) {
+    for (const p of paths) {
+        try {
+            const resp = await fetch(p);
+            if (resp && resp.ok) {
+                return await resp.json();
+            }
+        } catch (err) {
+            // ignore and try next path
+        }
+    }
+    return null;
 }
 
 // Load Transfers
@@ -150,28 +313,96 @@ async function loadRegisteredAccounts() {
         if (response && response.ok) {
             const result = await response.json();
             allRegisteredAccounts = Array.isArray(result) ? result : (result.data || []);
+            // indicate data came from server
+            const el = document.getElementById('serverInfo');
+            if (el) el.textContent = (el.textContent.replace(/\s*\|\s*Data:.*/,'') || 'Server') + ` | Data: server`;
             return;
         }
 
-        // If API returned 404 or failed (likely the deployed service hasn't been updated),
-        // try a fallback to the raw GitHub file so the admin can still show demo accounts.
+        // If API explicitly returns 404, try a same-origin static file first (some deployments
+        // serve the JSON at /data/registeredBankAccounts.json). If that also fails, fall back
+        // to the embedded demo data.
+        if (response && response.status === 404) {
+            console.info('Registered accounts API returned 404 — attempting several local/static fallbacks before embedded demo');
+
+            // 1) Try same-origin absolute path (useful when static site is deployed at same domain)
+            try {
+                const originStatic = await fetch(`${window.location.origin}/data/registeredBankAccounts.json`);
+                if (originStatic.ok) {
+                    const data = await originStatic.json();
+                    allRegisteredAccounts = Array.isArray(data) ? data : (data.data || []);
+                    const el = document.getElementById('serverInfo');
+                    if (el) el.textContent = (el.textContent.replace(/\s*\|\s*Data:.*/,'') || 'Server') + ` | Data: static-origin`;
+                    return;
+                } else {
+                    console.info('Same-origin origin/static file not available (status:', originStatic.status, ')');
+                }
+            } catch (err) {
+                console.warn('Origin static fetch failed:', err);
+            }
+
+            // 2) Try API host static path (legacy attempt)
+            try {
+                const staticResp = await fetch(`${base}/data/registeredBankAccounts.json`);
+                if (staticResp.ok) {
+                    const staticData = await staticResp.json();
+                    allRegisteredAccounts = Array.isArray(staticData) ? staticData : (staticData.data || []);
+                    const el = document.getElementById('serverInfo');
+                    if (el) el.textContent = (el.textContent.replace(/\s*\|\s*Data:.*/,'') || 'Server') + ` | Data: static-api-host`;
+                    return;
+                } else {
+                    console.info('API-host static file not available (status:', staticResp.status, ')');
+                }
+            } catch (err) {
+                console.warn('API-host static fetch failed:', err);
+            }
+
+            // 3) Try relative path from current page (./data/...) — useful when opening admin from a folder or local static server
+            try {
+                const relResp = await fetch('./data/registeredBankAccounts.json');
+                if (relResp.ok) {
+                    const relData = await relResp.json();
+                    allRegisteredAccounts = Array.isArray(relData) ? relData : (relData.data || []);
+                    const el = document.getElementById('serverInfo');
+                    if (el) el.textContent = (el.textContent.replace(/\s*\|\s*Data:.*/,'') || 'Server') + ` | Data: static-relative`;
+                    return;
+                } else {
+                    console.info('Relative static file not available (status:', relResp.status, ')');
+                }
+            } catch (err) {
+                console.warn('Relative static fetch failed:', err);
+            }
+
+            // Final embedded fallback
+            console.info('All static fallbacks failed — using embedded fallback data');
+            allRegisteredAccounts = FALLBACK_REGISTERED_ACCOUNTS;
+            const el = document.getElementById('serverInfo');
+            if (el) el.textContent = (el.textContent.replace(/\s*\|\s*Data:.*/,'') || 'Server') + ` | Data: fallback`;
+            return;
+        }
+
+        // Otherwise, attempt a remote fallback (raw GitHub) for convenience; if that fails, use embedded fallback.
         try {
             const rawUrl = 'https://raw.githubusercontent.com/Ayo454/Phone/main/data/registeredBankAccounts.json';
             const rawResp = await fetch(rawUrl);
             if (rawResp.ok) {
                 const rawData = await rawResp.json();
                 allRegisteredAccounts = Array.isArray(rawData) ? rawData : (rawData.data || []);
+                const el = document.getElementById('serverInfo');
+                if (el) el.textContent = (el.textContent.replace(/\s*\|\s*Data:.*/,'') || 'Server') + ` | Data: github-fallback`;
                 return;
+            } else {
+                console.info('Raw GitHub file not available (status:', rawResp.status, ') — using embedded fallback');
             }
         } catch (err) {
             console.warn('Fallback to raw GitHub file failed:', err);
         }
 
-        // Final fallback: empty list
-        allRegisteredAccounts = [];
+        // Final fallback: use embedded demo data
+        allRegisteredAccounts = FALLBACK_REGISTERED_ACCOUNTS;
     } catch (error) {
         console.error('Error loading registered accounts:', error);
-        allRegisteredAccounts = [];
+        allRegisteredAccounts = FALLBACK_REGISTERED_ACCOUNTS;
     }
 }
 

@@ -2089,6 +2089,12 @@ console.log('📍 About to start server on port 3000');
 const STARTUP_MARKER = process.env.STARTUP_MARKER || `startup:${new Date().toISOString()}`;
 console.log(`🔖 Startup marker: ${STARTUP_MARKER} ${process.env.COMMIT_SHA ? `(commit:${process.env.COMMIT_SHA})` : ''}`);
 
+// Detect common Render environment variables and expose for logs
+const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL || process.env.RENDER_SERVICE_NAME ? `https://${process.env.RENDER_SERVICE_NAME || 'phone-4hza'}.onrender.com` : (process.env.RENDER_URL || null);
+if (RENDER_EXTERNAL_URL) {
+    console.log(`🌐 Detected Render URL: ${RENDER_EXTERNAL_URL}`);
+}
+
 // Lightweight health endpoint to verify the running commit/startup marker from the browser
 app.get('/__health', (req, res) => {
     res.json({
@@ -2097,6 +2103,35 @@ app.get('/__health', (req, res) => {
         commit: process.env.COMMIT_SHA || null,
         timestamp: new Date().toISOString()
     });
+});
+
+// Serve admin page with optional injection of API_BASE_URL when running on Render or when a RENDER URL is configured.
+// This ensures that when you open /admin/bank-admin.html from localhost during development, the page can still
+// talk to the deployed Render API if desired.
+app.get('/admin/bank-admin.html', (req, res) => {
+    try {
+        const filePath = path.join(__dirname, 'admin', 'bank-admin.html');
+        let html = fs.readFileSync(filePath, 'utf8');
+
+        // Determine candidate render URL (prefer explicit ENV vars)
+        const injectUrl = process.env.RENDER_EXTERNAL_URL || process.env.RENDER_URL || (process.env.RENDER_SERVICE_NAME ? `https://${process.env.RENDER_SERVICE_NAME}.onrender.com` : null);
+
+        if (injectUrl) {
+            // Only inject if not already setting window.API_BASE_URL in the file
+            if (!/window\.API_BASE_URL\s*=/.test(html)) {
+                const script = `<script>window.API_BASE_URL = '${injectUrl.replace(/'/g, "\\'")}';</script>`;
+                // Insert script before the closing </head> so it runs before bank-admin.js
+                html = html.replace(/<\/head>/i, `${script}\n</head>`);
+            }
+        }
+
+        res.setHeader('Content-Type', 'text/html');
+        res.send(html);
+    } catch (err) {
+        console.error('Error serving admin page with injection:', err);
+        // Fallback to static serve if anything goes wrong
+        res.sendFile(path.join(__dirname, 'admin', 'bank-admin.html'));
+    }
 });
 
 // Return registered bank accounts (used by admin UI)
