@@ -1,10 +1,29 @@
 // NATE Bank Admin Panel - JavaScript
 
+// Determine API base URL with a few fallbacks:
+// 1. window.API_BASE_URL (manual override you can set in the page)
+// 2. If page is running from a non-local origin, use window.location.origin
+// 3. If page is served from a static local dev server (e.g. Live Server on :5500),
+//    fall back to the deployed Render URL so the admin UI can call the real API
 const API_BASE_URL = (() => {
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return '';
+    // Manual override (useful for local testing)
+    if (window.API_BASE_URL) return window.API_BASE_URL;
+
+    const host = window.location.hostname;
+    const origin = window.location.origin;
+
+    // Detect common local dev servers (Live Server, etc.). Adjust ports if you use different dev servers.
+    const isLikelyStaticDevServer = host === 'localhost' || host === '127.0.0.1' || origin.includes(':5500') || origin.includes(':8080');
+
+    if (isLikelyStaticDevServer) {
+        // Prefer the deployed API for convenience so the admin UI works when opened from VS Code Live Server.
+        // If you want to test against a local backend, start the backend (node server.js) and set
+        // window.API_BASE_URL = 'http://localhost:3000' in the console before the scripts run.
+        return 'https://phone-4hza.onrender.com';
     }
-    return window.location.origin;
+
+    // In normal (deployed) case, talk to same origin
+    return origin;
 })();
 
 // Debug: show which API_BASE_URL the client is using (helps verify deployed vs local)
@@ -121,13 +140,35 @@ async function loadRegisteredAccounts() {
     try {
         // If API_BASE_URL is empty (local dev), use relative path
         const base = API_BASE_URL || '';
-        const response = await fetch(`${base}/api/registered-accounts`);
-        if (response.ok) {
+        let response;
+        try {
+            response = await fetch(`${base}/api/registered-accounts`);
+        } catch (err) {
+            response = null;
+        }
+
+        if (response && response.ok) {
             const result = await response.json();
             allRegisteredAccounts = Array.isArray(result) ? result : (result.data || []);
-        } else {
-            allRegisteredAccounts = [];
+            return;
         }
+
+        // If API returned 404 or failed (likely the deployed service hasn't been updated),
+        // try a fallback to the raw GitHub file so the admin can still show demo accounts.
+        try {
+            const rawUrl = 'https://raw.githubusercontent.com/Ayo454/Phone/main/data/registeredBankAccounts.json';
+            const rawResp = await fetch(rawUrl);
+            if (rawResp.ok) {
+                const rawData = await rawResp.json();
+                allRegisteredAccounts = Array.isArray(rawData) ? rawData : (rawData.data || []);
+                return;
+            }
+        } catch (err) {
+            console.warn('Fallback to raw GitHub file failed:', err);
+        }
+
+        // Final fallback: empty list
+        allRegisteredAccounts = [];
     } catch (error) {
         console.error('Error loading registered accounts:', error);
         allRegisteredAccounts = [];
