@@ -7,6 +7,9 @@ const API_BASE_URL = (() => {
     return window.location.origin;
 })();
 
+// Debug: show which API_BASE_URL the client is using (helps verify deployed vs local)
+console.log('🔎 bank-admin: computed API_BASE_URL =', API_BASE_URL);
+
 let allApplications = [];
 let allTransfers = [];
 
