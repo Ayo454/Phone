@@ -2089,6 +2089,16 @@ console.log('📍 About to start server on port 3000');
 const STARTUP_MARKER = process.env.STARTUP_MARKER || `startup:${new Date().toISOString()}`;
 console.log(`🔖 Startup marker: ${STARTUP_MARKER} ${process.env.COMMIT_SHA ? `(commit:${process.env.COMMIT_SHA})` : ''}`);
 
+// Lightweight health endpoint to verify the running commit/startup marker from the browser
+app.get('/__health', (req, res) => {
+    res.json({
+        ok: true,
+        startup_marker: STARTUP_MARKER,
+        commit: process.env.COMMIT_SHA || null,
+        timestamp: new Date().toISOString()
+    });
+});
+
 const server = app.listen(process.env.PORT || 3000, '0.0.0.0', function() {
     console.log(`✅ Server running on http://0.0.0.0:${process.env.PORT || 3000}`);
     console.log(`📨 Ready to accept connections`);
