@@ -1,10 +1,22 @@
 // API Configuration - Point to Node.js backend
 // Support both localhost development and Render deployment
 const API_BASE_URL = (() => {
+    // If we have an injected RENDER_API_URL from the server, use it
+    if (window.RENDER_API_URL) {
+        return window.RENDER_API_URL;
+    }
+    
+    // For localhost/127.0.0.1 dev, use localhost:3000
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         return 'http://localhost:3000';
     }
-    // Use current origin for deployed environments (Render, etc.)
+    
+    // For deployed Render domain, use the Render API URL
+    if (window.location.hostname.includes('onrender.com')) {
+        return 'https://phone-4hza.onrender.com';
+    }
+    
+    // Default: use same origin
     return window.location.origin;
 })();
 
