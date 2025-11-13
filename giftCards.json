@@ -1,0 +1,4 @@
+{
+  "GIFT50-ABC123": { "amount": 50, "redeemed": false },
+  "GIFT25-XYZ789": { "amount": 25, "redeemed": false }
+}

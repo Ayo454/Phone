@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NATE Bank - Admin Panel</title>
+    <link rel="stylesheet" href="bank-admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="bank-admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-landmark"></i>
+                    <h2>NATE BANK</h2>
+                </div>
+                <p class="tagline">Admin Control</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-link active" data-section="dashboard">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+                <a href="#" class="nav-link" data-section="applications">
+                    <i class="fas fa-file-alt"></i> Applications
+                </a>
+                <a href="#" class="nav-link" data-section="accounts">
+                    <i class="fas fa-users"></i> Active Accounts
+                </a>
+                <a href="#" class="nav-link" data-section="approvals">
+                    <i class="fas fa-check-circle"></i> Approvals
+                </a>
+                <a href="#" class="nav-link" data-section="reports">
+                    <i class="fas fa-chart-bar"></i> Reports
+                </a>
+                <a href="#" class="nav-link" data-section="settings">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="admin-header">
+                <div class="header-title">
+                    <h1>Bank Admin Dashboard</h1>
+                    <p>Welcome back, Administrator</p>
+                </div>
+                <div class="header-actions">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search account number...">
+                    </div>
+                    <div class="admin-profile">
+                        <span>Admin</span>
+                        <img src="https://via.placeholder.com/40" alt="Admin">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section active">
+                <h2>Dashboard Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-card personal">
+                        <div class="stat-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Personal Accounts</h3>
+                            <p class="stat-number" id="personalCount">0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card business">
+                        <div class="stat-icon">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Business Accounts</h3>
+                            <p class="stat-number" id="businessCount">0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card savings">
+                        <div class="stat-icon">
+                            <i class="fas fa-piggy-bank"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Savings Accounts</h3>
+                            <p class="stat-number" id="savingsCount">0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card pending">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Pending Applications</h3>
+                            <p class="stat-number" id="pendingCount">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-apps">
+                    <div class="recent-header">
+                        <h3>Recent Applications</h3>
+                        <a href="#" class="link-view-all" data-section="applications">View All →</a>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Account #</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboardTableBody">
+                            <tr>
+                                <td colspan="8" class="empty-state">No applications yet</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Applications Section -->
+            <section id="applications" class="section">
+                <h2>Account Applications</h2>
+                <div class="filter-section">
+                    <label for="statusFilter" class="sr-only">Filter by status</label>
+                    <select id="statusFilter" class="filter-select" title="Filter applications by status">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                    <label for="typeFilter" class="sr-only">Filter by account type</label>
+                    <select id="typeFilter" class="filter-select" title="Filter applications by account type">
+                        <option value="">All Types</option>
+                        <option value="Personal Account">Personal Account</option>
+                        <option value="Business Account">Business Account</option>
+                        <option value="Savings Account">Savings Account</option>
+                    </select>
+                </div>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Account #</th>
+                            <th>Full Name</th>
+                            <th>Account Type</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Country</th>
+                            <th>Status</th>
+                            <th>Applied Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applicationsTableBody">
+                        <tr>
+                            <td colspan="9" class="empty-state">Loading applications...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Active Accounts Section -->
+            <section id="accounts" class="section">
+                <h2>Active Accounts</h2>
+                <div class="accounts-container" id="accountsContainer">
+                    <p>Loading accounts...</p>
+                </div>
+            </section>
+
+            <!-- Approvals Section -->
+            <section id="approvals" class="section">
+                <h2>Pending Approvals</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Account #</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Email</th>
+                            <th>Applied</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approvalsTableBody">
+                        <tr>
+                            <td colspan="6" class="empty-state">No pending approvals</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Reports Section -->
+            <section id="reports" class="section">
+                <h2>Reports & Analytics</h2>
+                <div class="reports-grid">
+                    <div class="report-card">
+                        <h3>Account Distribution</h3>
+                        <div id="distributionStats">
+                            <p>Loading...</p>
+                        </div>
+                    </div>
+                    <div class="report-card">
+                        <h3>Daily Applications</h3>
+                        <div id="dailyStats">
+                            <p>Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings" class="section">
+                <h2>Settings</h2>
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3>System Settings</h3>
+                        <div class="form-group">
+                            <label for="bankNameInput">Bank Name</label>
+                            <input id="bankNameInput" type="text" value="NATE BANK" disabled>
+                        </div>
+                        <button class="btn-export" id="exportBtn">
+                            <i class="fas fa-download"></i> Export Data
+                        </button>
+                        <button class="btn-refresh" id="refreshBtn">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h2>Application Details</h2>
+            <div id="detailContent"></div>
+            <div class="modal-actions">
+                <button class="btn-approve" id="approveBtn">Approve</button>
+                <button class="btn-reject" id="rejectBtn">Reject</button>
+                <button class="btn-close">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="bank-admin.js"></script>
+</body>
+</html>

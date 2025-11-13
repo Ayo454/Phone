@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NATE Wallet - Bank Transfer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-wallet"></i> NATE Wallet</h3>
+            <button id="closeSidebar" class="close-btn" title="Close sidebar" aria-label="Close sidebar"><i class="fas fa-times"></i></button>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" onclick="showSection('dashboardSection')">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="#" class="nav-item" onclick="showSection('transferSection')">
+                <i class="fas fa-exchange-alt"></i> Transfer Money
+            </a>
+            <a href="#" class="nav-item" onclick="showSection('bankTransferSection')">
+                <i class="fas fa-university"></i> Bank Transfer
+            </a>
+            <a href="#" class="nav-item" onclick="showSection('historySection')">
+                <i class="fas fa-history"></i> History
+                   <span id="historyBadgeNav" class="badge hidden">0</span>
+            </a>
+            <div class="nav-divider"></div>
+            <a href="#" class="nav-item" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Container -->
+    <div class="wallet-container">
+        <!-- Header -->
+        <div class="wallet-header">
+            <div class="header-top">
+                <button id="menuBtn" class="menu-btn" onclick="toggleSidebar(true)" title="Open menu" aria-label="Open menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1><i class="fas fa-wallet"></i> NATE WALLET</h1>
+                <div class="header-spacer"></div>
+            </div>
+            <p>Secure Bank Transfers Made Easy</p>
+        </div>
+
+        <!-- Content -->
+        <div class="wallet-content">
+            <!-- Login Section -->
+            <section id="loginSection" class="section hidden login-layout">
+                <div class="login-split">
+                    <!-- Left Sidebar -->
+                    <div class="login-sidebar">
+                        <div class="sidebar-content">
+                            <h3><i class="fas fa-wallet"></i> NATE WALLET</h3>
+                            <p>Secure Bank Transfers</p>
+                            <div class="talk-to-us">
+                                <h4>Talk to Us</h4>
+                                <p>We are happy to assist</p>
+                                <div class="contact-info">
+                                    <a href="mailto:help@nate.com">
+                                        <i class="fas fa-envelope"></i> help@nate.com
+                                    </a>
+                                    <a href="tel:+1234567890">
+                                        <i class="fas fa-phone"></i> +1 (234) 567-890
+                                    </a>
+                                </div>
+                                <div class="social-links">
+                                    <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+                                    <a href="#" title="Facebook"><i class="fab fa-facebook"></i></a>
+                                    <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Form -->
+                    <div class="login-form-container">
+                        <div class="auth-card">
+                            <h2>Welcome Back!</h2>
+                            <p class="form-subtitle">Login to your NATE Wallet account</p>
+                            
+                            <form id="nateLoginForm" class="login-form">
+                                <div class="form-group">
+                                    <label for="nateAccountNumber">
+                                        Email Address/Username
+                                    </label>
+                                    <input type="text" id="nateAccountNumber" placeholder="Enter your account number" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="natePassword">
+                                        Password
+                                        <a href="#" class="forgot-link">Forgot password?</a>
+                                    </label>
+                                    <input type="password" id="natePassword" placeholder="Enter your password" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block">
+                                    Login
+                                </button>
+                            </form>
+                            <div class="auth-footer">
+                                <p>Don't have an account? <a href="#" class="signup-link">Sign up</a></p>
+                            </div>
+                        </div>
+                        <div id="errorMessage" class="error-message hidden"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dashboard Section -->
+            <section id="dashboardSection" class="section hidden dashboard-layout">
+                <!-- Dashboard Header -->
+                <div class="dashboard-header-bar">
+                    <div class="header-content">
+                        <h1><i class="fas fa-wallet"></i> NATE WALLET</h1>
+                        <div class="user-profile">
+                            <span id="userGreeting">Welcome, User</span>
+                            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+                        </div>
+                        <div class="inbox-controls">
+                            <button id="refreshHistoryBtn" class="btn btn-small">Refresh</button>
+                            <span id="incomingBadge" class="badge hidden" aria-hidden="true">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Content -->
+                <div class="dashboard-main">
+                    <div class="dashboard-greeting">
+                        <h2>Good Morning, <span id="displayUserName">User</span></h2>
+                        <p>What would you like to do today?</p>
+                    </div>
+
+                    <!-- Action Grid -->
+                    <div class="action-tiles-grid">
+                        <div class="action-tile" onclick="showSection('dashboardSection')">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </div>
+                        <div class="action-tile" onclick="showSection('transferSection')">
+                            <i class="fas fa-exchange-alt"></i>
+                            <span>Internal Transfer</span>
+                        </div>
+                        <div class="action-tile" onclick="showSection('bankTransferSection')">
+                            <i class="fas fa-university"></i>
+                            <span>Bank Transfer</span>
+                        </div>
+                        <div class="action-tile" onclick="alert('Coming soon')">
+                            <i class="fas fa-bill"></i>
+                            <span>Airtime & Bills</span>
+                        </div>
+                        <div class="action-tile" onclick="alert('Coming soon')">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Expense Tracker</span>
+                        </div>
+                        <div class="action-tile" onclick="alert('Coming soon')">
+                            <i class="fas fa-gift"></i>
+                            <span>Gift Cards</span>
+                        </div>
+                        <div class="action-tile" onclick="alert('Coming soon')">
+                            <i class="fas fa-star"></i>
+                            <span>Rewards</span>
+                        </div>
+                        <div class="action-tile" onclick="alert('Coming soon')">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </div>
+                    </div>
+
+                    <!-- Account Summary Card -->
+                    <div class="account-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">Account Holder</span>
+                            <span class="summary-value" id="accountHolderName">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Account Number</span>
+                            <span class="summary-value" id="displayAccountNumber">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Total Balance</span>
+                            <span class="summary-value" id="totalBalance">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Transfer Section (Internal) -->
+            <section id="transferSection" class="section hidden">
+                <h2><i class="fas fa-people-arrows"></i> Transfer to NATE Account</h2>
+                <form id="transferForm" class="transfer-form">
+                    <div class="form-group">
+                        <label for="recipientAccount">
+                            <i class="fas fa-user-check"></i> Recipient Account Number
+                        </label>
+                        <input type="text" id="recipientAccount" placeholder="Enter recipient account number" required>
+                        <small id="recipientInfo" class="info-text"></small>
+                        <small id="detectedBankInfo" class="bank-info"></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="transferAmount">
+                            <i class="fas fa-dollar-sign"></i> Amount
+                        </label>
+                        <input type="number" id="transferAmount" placeholder="0.00" step="0.01" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="transferDescription">
+                            <i class="fas fa-comment"></i> Description
+                        </label>
+                        <textarea id="transferDescription" placeholder="What is this transfer for?" rows="3"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-paper-plane"></i> Send Transfer
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-block" onclick="showSection('dashboardSection')">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </form>
+            </section>
+
+            <!-- Bank Transfer Section -->
+            <section id="bankTransferSection" class="section hidden">
+                <h2><i class="fas fa-university"></i> Bank Transfer</h2>
+                
+                <div class="bank-transfer-form">
+                    <!-- Step 1: Select Country -->
+                    <div class="form-step">
+                        <div class="step-header">
+                            <span class="step-number">1</span>
+                            <h3>Select Country</h3>
+                        </div>
+                        <div class="form-group">
+                            <label for="bankCountry">
+                                <i class="fas fa-globe"></i> Country
+                            </label>
+                            <select id="bankCountry" required aria-label="Select country">
+                                <option value="">-- Select Country --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Select Bank -->
+                    <div class="form-step">
+                        <div class="step-header">
+                            <span class="step-number">2</span>
+                            <h3>Select Bank</h3>
+                        </div>
+                        <div class="form-group">
+                            <label for="bankName">
+                                <i class="fas fa-building"></i> Bank
+                            </label>
+                            <select id="bankName" required aria-label="Select bank">
+                                <option value="">-- Select Bank --</option>
+                            </select>
+                        </div>
+                        <div id="bankInfo" class="bank-info-card hidden">
+                            <p><strong>Bank Code:</strong> <span id="bankCode"></span></p>
+                            <p><strong>Website:</strong> <a id="bankWebsite" target="_blank" rel="noopener noreferrer"></a></p>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Bank Account Details -->
+                    <div class="form-step">
+                        <div class="step-header">
+                            <span class="step-number">3</span>
+                            <h3>Bank Account Details</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="recipientName">
+                                <i class="fas fa-user"></i> Recipient Full Name
+                            </label>
+                            <input type="text" id="recipientName" placeholder="Full name of recipient" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="accountNumber">
+                                <i class="fas fa-id-card"></i> Account Number
+                            </label>
+                            <input type="text" id="accountNumber" placeholder="Bank account number" required>
+                            <small id="bankAccountInfo" class="bank-account-info"></small>
+                            <small id="bankVerifyWarning" class="bank-verify-warning hidden">
+                                <span id="bankVerifyMessage">Unverified external account detected. Proceed with caution.</span>
+                                <button id="proceedUnverifiedBtn" class="btn btn-secondary mini">Proceed Anyway</button>
+                                <button id="verifyAgainBtn" class="btn btn-link mini">Verify Again</button>
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bankAccountType">
+                                <i class="fas fa-folder"></i> Account Type
+                            </label>
+                            <select id="bankAccountType" required aria-label="Select account type">
+                                <option value="">-- Select Account Type --</option>
+                                <option value="savings">Savings Account</option>
+                                <option value="checking">Checking Account</option>
+                                <option value="business">Business Account</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Transfer Details -->
+                    <div class="form-step">
+                        <div class="step-header">
+                            <span class="step-number">4</span>
+                            <h3>Transfer Amount</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bankTransferAmount">
+                                <i class="fas fa-dollar-sign"></i> Amount to Transfer
+                            </label>
+                            <input type="number" id="bankTransferAmount" placeholder="0.00" step="0.01" min="0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="purpose">
+                                <i class="fas fa-comment"></i> Purpose of Transfer
+                            </label>
+                            <textarea id="purpose" placeholder="What is this transfer for?" rows="3" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="swiftCode">
+                                <i class="fas fa-code"></i> SWIFT/IBAN (Optional)
+                            </label>
+                            <input type="text" id="swiftCode" placeholder="e.g., BOAUS33XXX or IBAN">
+                        </div>
+                    </div>
+
+                    <!-- Summary -->
+                    <div class="transfer-summary">
+                        <h3>Transfer Summary</h3>
+                        <div class="summary-row">
+                            <span>Country:</span>
+                            <strong id="summaryCountry">-</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>Bank:</span>
+                            <strong id="summaryBank">-</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>Recipient:</span>
+                            <strong id="summaryRecipient">-</strong>
+                        </div>
+                        <div class="summary-row highlight">
+                            <span>Amount:</span>
+                            <strong id="summaryAmount">$0.00</strong>
+                        </div>
+                    </div>
+
+                    <button id="submitBankTransfer" class="btn btn-primary btn-block">
+                        <i class="fas fa-check-circle"></i> Confirm and Send
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-block" onclick="openRegisterModal()">
+                        <i class="fas fa-plus-circle"></i> Register New Bank Account
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-block" onclick="showSection('dashboardSection')">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </section>
+
+            <!-- History Section -->
+            <section id="historySection" class="section hidden">
+                <h2><i class="fas fa-history"></i> Transaction History</h2>
+                <div id="transactionHistory" class="transaction-list">
+                    <p class="empty-message">No transactions yet</p>
+                </div>
+            </section>
+
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="loading-spinner hidden">
+                <div class="spinner"></div>
+                <p id="loadingText">Loading...</p>
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorAlert" class="alert alert-error hidden">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorText"></span>
+                <button onclick="hideError()" class="close-btn" title="Close" aria-label="Close alert"><i class="fas fa-times"></i></button>
+            </div>
+
+            <!-- Success Message -->
+            <div id="successAlert" class="alert alert-success hidden">
+                <i class="fas fa-check-circle"></i>
+                <span id="successText"></span>
+                <button onclick="hideSuccess()" class="close-btn" title="Close" aria-label="Close alert"><i class="fas fa-times"></i></button>
+            </div>
+            <!-- Toast container for notifications -->
+            <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+        </div>
+    </div>
+
+    <!-- Modal for Registering Bank Account -->
+    <div id="registerBankAccountModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-bank"></i> Register Bank Account</h2>
+                <button class="close-btn" onclick="closeRegisterModal()" title="Close" aria-label="Close modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Register your bank account for quick verification and future transfers.</p>
+                <form id="registerBankForm">
+                    <div class="form-group">
+                        <label for="regBank">Bank Name</label>
+                        <input type="text" id="regBank" placeholder="e.g., Zenith Bank, GTBank" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regAccountNumber">Account Number</label>
+                        <input type="text" id="regAccountNumber" placeholder="Your account number" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regAccountHolder">Account Holder Name</label>
+                        <input type="text" id="regAccountHolder" placeholder="Your full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regCountry">Country</label>
+                        <input type="text" id="regCountry" placeholder="e.g., NG" value="NG">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeRegisterModal()">Cancel</button>
+                <button class="btn btn-primary" id="submitRegisterBtn">Register</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Confirmation -->
+    <div id="confirmModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-exclamation-circle"></i> Confirm Transfer</h2>
+                <button class="close-btn" onclick="closeModal()" title="Close" aria-label="Close modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to proceed with this transfer?</p>
+                <div class="confirmation-details">
+                    <p><strong>Recipient:</strong> <span id="confirmRecipient"></span></p>
+                    <p><strong>Amount:</strong> <span id="confirmAmount"></span></p>
+                    <p><strong>Bank:</strong> <span id="confirmBank"></span></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" id="confirmBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="transfer.js"></script>
+    <script>
+        // Define API_BASE_URL and simple UI helpers if not already defined by transfer.js
+        // Use window.API_BASE_URL so we don't attempt to redeclare a const when transfer.js
+        // is loaded before this inline script.
+        window.API_BASE_URL = window.API_BASE_URL || (() => {
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                return 'http://localhost:3000';
+            }
+            return window.location.origin;
+        })();
+
+        // Simple UI helpers for registration modal
+        function showSuccess(message) {
+            const successEl = document.getElementById('successAlert');
+            if (successEl) {
+                document.getElementById('successText').textContent = message;
+                successEl.classList.remove('hidden');
+                setTimeout(() => successEl.classList.add('hidden'), 3000);
+            } else {
+                alert(message);
+            }
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorAlert');
+            if (errorEl) {
+                document.getElementById('errorText').textContent = message;
+                errorEl.classList.remove('hidden');
+            } else {
+                alert('Error: ' + message);
+            }
+        }
+
+        function hideError() {
+            const errorEl = document.getElementById('errorAlert');
+            if (errorEl) errorEl.classList.add('hidden');
+        }
+
+        function showLoading(message) {
+            const loadingEl = document.getElementById('loadingSpinner');
+            if (loadingEl) {
+                const textEl = document.getElementById('loadingText');
+                if (textEl) textEl.textContent = message || 'Loading...';
+                loadingEl.classList.remove('hidden');
+            }
+        }
+
+        function hideLoading() {
+            const loadingEl = document.getElementById('loadingSpinner');
+            if (loadingEl) loadingEl.classList.add('hidden');
+        }
+
+        // Load banks from JSON
+        async function loadBanks() {
+            try {
+                const response = await fetch('/banks.json');
+                const banks = await response.json();
+                populateCountries(banks);
+                window.banksData = banks;
+            } catch (error) {
+                console.error('Error loading banks:', error);
+                showError('Failed to load bank data');
+            }
+        }
+
+        function populateCountries(banks) {
+            const countrySelect = document.getElementById('bankCountry');
+            const countries = Object.keys(banks).sort();
+            
+            countries.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country;
+                option.textContent = country;
+                countrySelect.appendChild(option);
+            });
+
+            countrySelect.addEventListener('change', handleCountryChange);
+        }
+
+        function handleCountryChange() {
+            const country = document.getElementById('bankCountry').value;
+            const bankSelect = document.getElementById('bankName');
+            
+            bankSelect.innerHTML = '<option value="">-- Select Bank --</option>';
+            
+            if (country && window.banksData) {
+                const banksInCountry = window.banksData[country];
+                banksInCountry.forEach((bank, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = bank.name;
+                    bankSelect.appendChild(option);
+                });
+            }
+
+            bankSelect.addEventListener('change', handleBankChange);
+            updateSummary();
+        }
+
+        function handleBankChange() {
+            const country = document.getElementById('bankCountry').value;
+            const bankIndex = document.getElementById('bankName').value;
+
+            if (country && bankIndex !== '' && window.banksData) {
+                const bank = window.banksData[country][bankIndex];
+                document.getElementById('bankCode').textContent = bank.code;
+                document.getElementById('bankWebsite').href = bank.website;
+                document.getElementById('bankWebsite').textContent = bank.website;
+                document.getElementById('bankInfo').classList.remove('hidden');
+            } else {
+                document.getElementById('bankInfo').classList.add('hidden');
+            }
+
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const country = document.getElementById('bankCountry').value || '-';
+            const bankIndex = document.getElementById('bankName').value;
+            const recipient = document.getElementById('recipientName').value || '-';
+            const amount = document.getElementById('bankTransferAmount').value || '0.00';
+
+            document.getElementById('summaryCountry').textContent = country;
+            
+            if (country !== '-' && bankIndex !== '') {
+                const bank = window.banksData[country][bankIndex];
+                document.getElementById('summaryBank').textContent = bank.name;
+            } else {
+                document.getElementById('summaryBank').textContent = '-';
+            }
+
+            document.getElementById('summaryRecipient').textContent = recipient;
+            document.getElementById('summaryAmount').textContent = `$${parseFloat(amount || 0).toFixed(2)}`;
+        }
+
+        // Event listeners for updating summary
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBanks();
+            
+            document.getElementById('recipientName')?.addEventListener('input', updateSummary);
+            document.getElementById('bankTransferAmount')?.addEventListener('input', updateSummary);
+
+            document.getElementById('submitBankTransfer')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                showConfirmationModal();
+            });
+
+            document.getElementById('confirmBtn')?.addEventListener('click', submitBankTransfer);
+
+            // Register Bank Account modal handlers
+            document.getElementById('submitRegisterBtn')?.addEventListener('click', submitBankAccountRegistration);
+        });
+
+        function showConfirmationModal() {
+            const country = document.getElementById('bankCountry').value;
+            const bankIndex = document.getElementById('bankName').value;
+            const recipient = document.getElementById('recipientName').value;
+            const amount = document.getElementById('bankTransferAmount').value;
+
+            if (!country || bankIndex === '' || !recipient || !amount) {
+                showError('Please fill in all required fields');
+                return;
+            }
+
+            const bank = window.banksData[country][bankIndex];
+            document.getElementById('confirmRecipient').textContent = recipient;
+            document.getElementById('confirmAmount').textContent = `$${parseFloat(amount).toFixed(2)}`;
+            document.getElementById('confirmBank').textContent = bank.name;
+
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+        }
+
+        function openRegisterModal() {
+            document.getElementById('registerBankAccountModal').classList.remove('hidden');
+        }
+
+        function closeRegisterModal() {
+            document.getElementById('registerBankAccountModal').classList.add('hidden');
+            document.getElementById('registerBankForm').reset();
+        }
+
+        async function submitBankAccountRegistration() {
+            const bank = document.getElementById('regBank').value.trim();
+            const accountNumber = document.getElementById('regAccountNumber').value.trim();
+            const accountHolderName = document.getElementById('regAccountHolder').value.trim();
+            const country = document.getElementById('regCountry').value.trim() || 'NG';
+
+            if (!bank || !accountNumber || !accountHolderName) {
+                showError('Please fill in all required fields');
+                return;
+            }
+
+            try {
+                showLoading('Registering bank account...');
+                const res = await fetch(`${API_BASE_URL}/api/register-bank-account`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bank, accountNumber, accountHolderName, country })
+                });
+                const data = await res.json();
+                hideLoading();
+
+                if (!res.ok) {
+                    showError(data.message || 'Failed to register bank account');
+                    return;
+                }
+
+                showSuccess(`Bank account registered successfully! You can now use this account for quick transfers.`);
+                closeRegisterModal();
+                
+                // Pre-fill the account number if still in bank transfer form
+                const acctEl = document.getElementById('accountNumber');
+                if (acctEl && !acctEl.value) {
+                    acctEl.value = accountNumber;
+                    acctEl.dispatchEvent(new Event('input'));
+                }
+            } catch (error) {
+                hideLoading();
+                console.error('Registration error:', error);
+                showError('An error occurred while registering the bank account.');
+            }
+        }
+
+        async function submitBankTransfer() {
+            const country = document.getElementById('bankCountry').value;
+            const bankIndex = document.getElementById('bankName').value;
+            const bank = window.banksData[country][bankIndex];
+            
+            // require explicit consent to proceed if external/unverified
+            if (window.bankVerification && window.bankVerification.account && window.bankVerification.account.status === 'external' && !window.bankVerification.allowed) {
+                showError('The recipient account appears to be external/unverified. Please confirm by clicking "Proceed Anyway" before submitting.');
+                return;
+            }
+
+            const transferData = {
+                sourceAccountNumber: currentUser ? currentUser.accountNumber : 'guest',
+                country,
+                bank: bank.name,
+                bankCode: bank.code,
+                recipientName: document.getElementById('recipientName').value,
+                accountNumber: document.getElementById('accountNumber').value,
+                accountType: document.getElementById('bankAccountType').value,
+                amount: parseFloat(document.getElementById('bankTransferAmount').value),
+                purpose: document.getElementById('purpose').value,
+                swiftCode: document.getElementById('swiftCode').value,
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                showLoading('Processing bank transfer...');
+                closeModal();
+
+                // Try to send via API first
+                const res = await fetch(`${API_BASE_URL}/api/external-bank-transfer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(transferData)
+                });
+                const data = await res.json();
+                hideLoading();
+
+                if (!res.ok) {
+                    showError(data.message || 'Failed to process bank transfer');
+                    return;
+                }
+
+                // Also store transfer in localStorage as backup
+                const transfers = JSON.parse(localStorage.getItem('nateTransfers') || '[]');
+                transfers.push(transferData);
+                localStorage.setItem('nateTransfers', JSON.stringify(transfers));
+
+                showSuccess(`Transfer of $${transferData.amount.toFixed(2)} to ${transferData.recipientName} at ${transferData.bank} has been completed successfully!`);
+                
+                // Reset form
+                document.querySelector('.bank-transfer-form').reset();
+                updateSummary();
+
+                setTimeout(() => {
+                    hideLoading();
+                    showSection('dashboardSection');
+                }, 1500);
+            } catch (error) {
+                hideLoading();
+                console.error('Bank transfer error:', error);
+                // Fallback to localStorage only
+                const transfers = JSON.parse(localStorage.getItem('nateTransfers') || '[]');
+                transfers.push(transferData);
+                localStorage.setItem('nateTransfers', JSON.stringify(transfers));
+                showSuccess(`Transfer of $${transferData.amount.toFixed(2)} to ${transferData.recipientName} has been recorded (offline mode)`);
+                document.querySelector('.bank-transfer-form').reset();
+                updateSummary();
+                setTimeout(() => {
+                    showSection('dashboardSection');
+                }, 1500);
+            }
+        }
+    </script>
+</body>
+</html>

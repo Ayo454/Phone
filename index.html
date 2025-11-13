@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APLK Careers - Job Opportunities</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <a href="#home">
+                <span class="logo-text">APLK</span>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="#home">Home</a>
+            <a href="#who-we-are">Who We Are</a>
+            <a href="#where-fit">Where Do You Fit In</a>
+            <a href="#positions">Job Positions</a>
+            <a href="#contact">Contact</a>
+        </div>
+    </nav>
+
+    <header id="home" class="hero-section">
+        <div class="hero-content">
+            <h1>Discover Your Next <span class="highlight-blue">Career</span> <span class="highlight-purple">Opportunity</span></h1>
+            <p>Explore exciting positions that fit your skills and passion.</p>
+            <p>Join us and bring your difference.</p>
+        </div>
+    </header>
+
+    <section id="who-we-are" class="who-we-are">
+        <h2>WHO WE ARE</h2>
+        <p>APLK is an innovative technology company, committed to transforming businesses and empowering individuals through cutting-edge solutions worldwide.</p>
+        
+        <div class="values-grid">
+            <div class="value-card">
+                <h3>OUR PHILOSOPHY</h3>
+                <p>We are your trusted compass, aiding you to access and navigate a world of boundless possibilities.</p>
+            </div>
+            <div class="value-card">
+                <h3>OUR VISION</h3>
+                <p>To reinvent the future by creating access to the possibilities inherent in the digital world.</p>
+            </div>
+            <div class="value-card">
+                <h3>OUR MISSION</h3>
+                <p>To inspire innovation by providing unlimited possibilities to all that come our way.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="where-fit" class="where-fit">
+        <h2>WHERE DO YOU FIT IN</h2>
+        <h3>Find the job that fits your skills</h3>
+        <p>Explore career opportunities at APLK, a leading innovative technology company. Join our team and contribute to delivering cutting-edge solutions worldwide.</p>
+        
+        <div class="departments-grid">
+            <div class="department-card">
+                <i class="fas fa-headset"></i>
+                <h3>CUSTOMER EXPERIENCE</h3>
+                <p>Engage with customers to provide top-notch experience and ensure satisfaction with our services.</p>
+            </div>
+            <div class="department-card">
+                <i class="fas fa-chart-line"></i>
+                <h3>FINANCE</h3>
+                <p>Manage financial operations, budgeting, and strategic planning to drive the company's fiscal health.</p>
+            </div>
+            <div class="department-card">
+                <i class="fas fa-code"></i>
+                <h3>TECHNOLOGY</h3>
+                <p>Develop and maintain cutting-edge infrastructure to deliver high-speed services globally.</p>
+            </div>
+            <div class="department-card">
+                <i class="fas fa-briefcase"></i>
+                <h3>COMMERCIAL</h3>
+                <p>Drive business growth through strategic partnerships, sales, and market expansion initiatives.</p>
+            </div>
+            <div class="department-card">
+                <i class="fas fa-building"></i>
+                <h3>CORPORATE SERVICES</h3>
+                <p>Support the organization with essential services including HR, legal, and administrative functions.</p>
+            </div>
+            <div class="department-card">
+                <i class="fas fa-balance-scale"></i>
+                <h3>INTERNAL AUDIT & COMPLIANCE</h3>
+                <p>Safeguard the business by assessing risks and ensuring regulatory compliance.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="benefits">
+        <h2>WHY CHOOSE US?</h2>
+        <p>Perks and benefits that make working here worthwhile.</p>
+        
+        <div class="benefits-grid">
+            <div class="benefit-card">
+                <i class="fas fa-money-bill-wave"></i>
+                <h3>Competitive Compensation</h3>
+            </div>
+            <div class="benefit-card">
+                <i class="fas fa-graduation-cap"></i>
+                <h3>Professional Development Opportunities</h3>
+            </div>
+            <div class="benefit-card">
+                <i class="fas fa-calendar-alt"></i>
+                <h3>Paid Time Off</h3>
+            </div>
+            <div class="benefit-card">
+                <i class="fas fa-heart"></i>
+                <h3>Health Insurance</h3>
+            </div>
+            <div class="benefit-card">
+                <i class="fas fa-map-marker-alt"></i>
+                <h3>Multi-Location Work Environment</h3>
+            </div>
+        </div>
+    </section>
+
+    <section id="positions" class="open-positions">
+        <h2>OPEN POSITIONS</h2>
+        <button class="apply-btn" id="openApplyModal">
+            <i class="fas fa-paper-plane"></i>
+            Apply Now
+        </button>
+    </section>
+
+    <!-- Application Modal -->
+    <div class="modal" id="applicationModal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Apply for Position</h2>
+            <form id="applicationForm" class="application-form">
+                <div class="form-group">
+                    <label for="position">Position Applying For*</label>
+                    <select id="position" name="position" required>
+                        <option value="">Select a position</option>
+                        <option value="customer-experience">Customer Experience</option>
+                        <option value="finance">Finance</option>
+                        <option value="technology">Technology</option>
+                        <option value="commercial">Commercial</option>
+                        <option value="corporate-services">Corporate Services</option>
+                        <option value="internal-audit">Internal Audit & Compliance</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name*</label>
+                        <input type="text" id="firstName" name="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name*</label>
+                        <input type="text" id="lastName" name="lastName" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email Address*</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number*</label>
+                        <input type="tel" id="phone" name="phone" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="experience">Years of Experience*</label>
+                    <select id="experience" name="experience" required>
+                        <option value="">Select experience</option>
+                        <option value="0-1">0-1 years</option>
+                        <option value="1-3">1-3 years</option>
+                        <option value="3-5">3-5 years</option>
+                        <option value="5-10">5-10 years</option>
+                        <option value="10+">10+ years</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="resume">Upload Resume (PDF, DOC, DOCX)*</label>
+                    <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="coverLetter">Cover Letter</label>
+                    <textarea id="coverLetter" name="coverLetter" rows="5"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="terms" name="terms" required>
+                        I agree to the terms and conditions and consent to the processing of my personal data
+                    </label>
+                </div>
+
+                <p class="payment-note">Submit your application. No payment is required.</p>
+                <button type="submit" class="submit-application-btn">Submit Application</button>
+            </form>
+        </div>
+    </div>
+
+    <section id="contact" class="contact">
+        <h2>CONTACT US</h2>
+        <form class="contact-form">
+            <input type="text" placeholder="Your Name" required>
+            <input type="email" placeholder="Your Email" required>
+            <textarea placeholder="Your Message" required></textarea>
+            <button type="submit" class="submit-btn">Send Message</button>
+        </form>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>COMPANY</h3>
+                <span class="footer-logo-text">APLK</span>
+                <p>2, Business Avenue, New York</p>
+                <p>0700123456</p>
+                <p>careers@aplk.ng</p>
+            </div>
+            <div class="footer-section">
+                <h3>HELP & SUPPORT</h3>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Help</a></li>
+                    <li><a href="#">MyAPLK App</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>LEGAL</h3>
+                <ul>
+                    <li><a href="#">Terms & Conditions</a></li>
+                    <li><a href="#">Acceptable Use Policy</a></li>
+                    <li><a href="#">Service Agreement</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="social-links">
+            <a href="#" aria-label="Follow us on Twitter" title="Twitter"><i class="fab fa-twitter" aria-hidden="true"></i><span class="sr-only">Twitter</span></a>
+            <a href="#" aria-label="Follow us on Instagram" title="Instagram"><i class="fab fa-instagram" aria-hidden="true"></i><span class="sr-only">Instagram</span></a>
+            <a href="#" aria-label="Connect with us on LinkedIn" title="LinkedIn"><i class="fab fa-linkedin" aria-hidden="true"></i><span class="sr-only">LinkedIn</span></a>
+        </div>
+        <div class="footer-bottom">
+            <p>Copyright © 2025 APLK. All Rights Reserved</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
