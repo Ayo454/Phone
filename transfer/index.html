@@ -401,6 +401,9 @@
         </div>
     </div>
 
+    <!-- Developer: simulate an incoming inter-bank transfer (for testing) -->
+    <button id="simulateIncomingBtn" class="simulate-incoming-btn" title="Simulate incoming inter-bank transfer">Simulate Incoming Transfer</button>
+
     <!-- Modal for Registering Bank Account -->
     <div id="registerBankAccountModal" class="modal hidden">
         <div class="modal-content">
@@ -458,6 +461,13 @@
         </div>
     </div>
 
+    <script>
+        // If you'd like the UI to point at the Render deployment instead of localhost
+        // while developing locally, set window.RENDER_API_URL here. This makes the
+        // client use the Render API URL even when opening the file from localhost.
+        // Change the URL below to your Render service URL if different.
+        window.RENDER_API_URL = window.RENDER_API_URL || 'https://phone-4hza.onrender.com';
+    </script>
     <script src="transfer.js"></script>
     <script>
         // Define API_BASE_URL and simple UI helpers if not already defined by transfer.js
@@ -623,6 +633,44 @@
 
             // Register Bank Account modal handlers
             document.getElementById('submitRegisterBtn')?.addEventListener('click', submitBankAccountRegistration);
+            
+                // Dev: simulate incoming inter-bank transfer button
+                document.getElementById('simulateIncomingBtn')?.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    try {
+                        // sample transfer: from GTBANK account to NATE account 2075861747
+                        const payload = {
+                            sourceBank: 'GTBANK',
+                            sourceAccountNumber: '9999000011',
+                            destinationAccountNumber: '2075861747',
+                            amount: 100.00,
+                            reason: 'Simulated incoming transfer for testing'
+                        };
+
+                        showLoading('Simulating incoming transfer...');
+                        const res = await fetch(`${API_BASE_URL}/api/inter-bank-transfer`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const data = await res.json();
+                        hideLoading();
+                        if (!res.ok) {
+                            showError(data.message || 'Simulation failed');
+                            return;
+                        }
+                        showSuccess(`Simulated incoming transfer complete (id: ${data.transactionId || 'n/a'})`);
+
+                        // If current user matches destination, refresh incoming transfers
+                        if (window.currentUser && window.currentUser.accountNumber === payload.destinationAccountNumber) {
+                            try { refreshIncomingTransfers({ accountNumber: payload.destinationAccountNumber, markSeen: false, render: true }); } catch (e) { /* ignore */ }
+                        }
+                    } catch (err) {
+                        hideLoading();
+                        console.error('Simulation error:', err);
+                        showError('Simulation failed: ' + (err.message || err));
+                    }
+                });
         });
 
         function showConfirmationModal() {

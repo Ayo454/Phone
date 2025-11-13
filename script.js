@@ -6,9 +6,9 @@ const API_BASE_URL = (() => {
         return window.RENDER_API_URL;
     }
     
-    // For localhost/127.0.0.1 dev, use localhost:3000
+    // For localhost/127.0.0.1 dev, use Render instead
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return 'http://localhost:3000';
+        return 'https://phone-4hza.onrender.com';
     }
     
     // For deployed Render domain, use the Render API URL

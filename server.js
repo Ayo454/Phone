@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const crypto = require('crypto');
 const app = express();
 const port = process.env.PORT || 3000;
 const cors = require('cors');
@@ -31,8 +32,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Capture raw request body for webhook signature verification (Paystack)
+app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf; } }));
+app.use(express.urlencoded({ extended: true, verify: (req, res, buf) => { req.rawBody = buf; } }));
 
 // Add request logging middleware
 app.use((req, res, next) => {
@@ -2154,6 +2156,98 @@ const server = app.listen(process.env.PORT || 3000, '0.0.0.0', function() {
     console.log(`📨 Ready to accept connections`);
     console.log(`🌐 Accessible at: https://phone-4hza.onrender.com (Render) or http://localhost:3000 (Local)`);
     console.log(`🔖 Startup marker (again): ${STARTUP_MARKER}`);
+});
+
+// ==================== /api/paystack-webhook: Receive incoming transfers from Paystack ====================
+app.post('/api/paystack-webhook', express.json(), (req, res) => {
+    try {
+        // Verify Paystack signature if secret available
+        const paystackSignature = req.headers['x-paystack-signature'];
+        const paystackSecret = process.env.PAYSTACK_SECRET_KEY || '';
+        if (paystackSecret) {
+            try {
+                const expected = crypto.createHmac('sha512', paystackSecret).update(req.rawBody || '').digest('hex');
+                if (!paystackSignature || expected !== paystackSignature) {
+                    console.warn('⚠️ Paystack signature mismatch. Expected:', expected, 'Got:', paystackSignature);
+                    return res.status(401).json({ success: false, message: 'Invalid signature' });
+                }
+            } catch (e) {
+                console.warn('Error verifying Paystack signature:', e.message);
+                return res.status(500).json({ success: false, message: 'Signature verification error' });
+            }
+        } else {
+            console.log('⚠️ PAYSTACK_SECRET_KEY not set; skipping signature verification (development only).');
+        }
+
+        console.log('🔔 Paystack webhook received:', JSON.stringify(req.body, null, 2));
+        const { event, data } = req.body || {};
+
+        if (!event || !data) {
+            return res.status(400).json({ success: false, message: 'Missing event or data' });
+        }
+
+        // Only process successful transfer events
+        if (event !== 'transfer.success' && event !== 'transfer.completed') {
+            return res.json({ success: true, message: 'Event acknowledged but not processed' });
+        }
+
+        const { reference, amount, recipient, reason, currency } = data;
+
+        let recipientAccountNumber = '';
+        let recipientName = '';
+        const bank = 'Paystack';
+
+        if (recipient) {
+            if (recipient.details && recipient.details.account_number) {
+                recipientAccountNumber = recipient.details.account_number;
+            }
+            if (recipient.name) recipientName = recipient.name;
+        }
+
+        if (!recipientAccountNumber) {
+            return res.status(400).json({ success: false, message: 'Missing recipient account number' });
+        }
+
+        // Create transfer record
+        const transferRecord = {
+            id: uuidv4(),
+            type: 'paystack-webhook',
+            sourceAccountNumber: 'paystack',
+            recipientName: recipientName || 'Paystack Transfer',
+            recipientAccountNumber: recipientAccountNumber,
+            bank: bank,
+            country: 'NG',
+            amount: (amount || 0) / 100, // Paystack amounts are in kobo
+            purpose: reason || 'Paystack transfer',
+            externalReference: reference || '',
+            currency: currency || 'NGN',
+            status: 'completed',
+            timestamp: new Date().toISOString(),
+            processedAt: new Date().toISOString()
+        };
+
+        // Save to transfers.json
+        const transfersFile = path.join(DATA_DIR, 'transfers.json');
+        let transfers = [];
+        try {
+            if (fs.existsSync(transfersFile)) {
+                const fileContent = fs.readFileSync(transfersFile, 'utf-8');
+                const parsed = JSON.parse(fileContent);
+                transfers = Array.isArray(parsed) ? parsed : [];
+            }
+        } catch (e) {
+            console.warn('Failed to load transfers.json:', e.message);
+        }
+
+        transfers.push(transferRecord);
+        fs.writeFileSync(transfersFile, JSON.stringify(transfers, null, 2));
+
+        console.log(`✓ Paystack transfer recorded: ${transferRecord.amount} to ${recipientAccountNumber}`);
+        return res.json({ success: true, message: 'Transfer recorded successfully', transferId: transferRecord.id });
+    } catch (err) {
+        console.error('Error processing Paystack webhook:', err);
+        return res.status(500).json({ success: false, message: 'Failed to process webhook', error: err.message });
+    }
 });
 
 server.on('error', (err) => {

@@ -7,10 +7,14 @@ const RENDER_URL = 'https://phone-4hza.onrender.com';
 window.RENDER_URL = RENDER_URL;
 
 const API_BASE_URL = (() => {
+    // If we have an injected RENDER_API_URL from the server, use it
+    if (window.RENDER_API_URL) {
+        return window.RENDER_API_URL;
+    }
     const hostname = window.location.hostname || '';
-    // Local development
+    // For localhost dev, use Render URL instead of localhost
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return 'http://localhost:3000';
+        return 'https://phone-4hza.onrender.com';
     }
     // If the site is hosted on Render or you're accessing a Render preview,
     // point API calls explicitly to the public Render service.

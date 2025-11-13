@@ -1,0 +1,13 @@
+[build]
+  # No build command required for this simple static repo (plain HTML/CSS/JS)
+  publish = "."
+
+[dev]
+  # Useful when running Netlify Dev locally
+  command = "npm start"
+  port = 8888
+
+[context.production.environment]
+  # Optionally set your API base URL here if your backend is deployed elsewhere (e.g., Render)
+  # Example: API_BASE_URL = "https://phone-4hza.onrender.com"
+  # You can set this in the Netlify UI under Site settings -> Build & deploy -> Environment

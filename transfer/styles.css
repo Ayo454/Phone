@@ -32,6 +32,31 @@ html, body {
     padding: 0;
 }
 
+/* Dev simulate incoming transfer floating button */
+.simulate-incoming-btn {
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+    z-index: 9999;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: #2b7a78;
+    color: #fff;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.simulate-incoming-btn:hover {
+    transform: translateY(-3px);
+}
+
+.simulate-incoming-btn:active {
+    transform: translateY(0);
+}
+
 body {
     font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background: #f5f5f5;
