@@ -301,108 +301,50 @@ async function loadTransfers() {
 // Load Registered Accounts
 async function loadRegisteredAccounts() {
     try {
-        // If API_BASE_URL is empty (local dev), use relative path
-        const base = API_BASE_URL || '';
-        let response;
+        // Try API first
         try {
-            response = await fetch(`${base}/api/registered-accounts`);
-        } catch (err) {
-            response = null;
-        }
-
-        if (response && response.ok) {
-            const result = await response.json();
-            allRegisteredAccounts = Array.isArray(result) ? result : (result.data || []);
-            // indicate data came from server
-            const el = document.getElementById('serverInfo');
-            if (el) el.textContent = (el.textContent.replace(/\s*\|\s*Data:.*/,'') || 'Server') + ` | Data: server`;
-            return;
-        }
-
-        // If API explicitly returns 404, try a same-origin static file first (some deployments
-        // serve the JSON at /data/registeredBankAccounts.json). If that also fails, fall back
-        // to the embedded demo data.
-        if (response && response.status === 404) {
-            console.info('Registered accounts API returned 404 — attempting several local/static fallbacks before embedded demo');
-
-            // 1) Try same-origin absolute path (useful when static site is deployed at same domain)
-            try {
-                const originStatic = await fetch(`${window.location.origin}/data/registeredBankAccounts.json`);
-                if (originStatic.ok) {
-                    const data = await originStatic.json();
-                    allRegisteredAccounts = Array.isArray(data) ? data : (data.data || []);
-                    const el = document.getElementById('serverInfo');
-                    if (el) el.textContent = (el.textContent.replace(/\s*\|\s*Data:.*/,'') || 'Server') + ` | Data: static-origin`;
-                    return;
-                } else {
-                    console.info('Same-origin origin/static file not available (status:', originStatic.status, ')');
-                }
-            } catch (err) {
-                console.warn('Origin static fetch failed:', err);
-            }
-
-            // 2) Try API host static path (legacy attempt)
-            try {
-                const staticResp = await fetch(`${base}/data/registeredBankAccounts.json`);
-                if (staticResp.ok) {
-                    const staticData = await staticResp.json();
-                    allRegisteredAccounts = Array.isArray(staticData) ? staticData : (staticData.data || []);
-                    const el = document.getElementById('serverInfo');
-                    if (el) el.textContent = (el.textContent.replace(/\s*\|\s*Data:.*/,'') || 'Server') + ` | Data: static-api-host`;
-                    return;
-                } else {
-                    console.info('API-host static file not available (status:', staticResp.status, ')');
-                }
-            } catch (err) {
-                console.warn('API-host static fetch failed:', err);
-            }
-
-            // 3) Try relative path from current page (./data/...) — useful when opening admin from a folder or local static server
-            try {
-                const relResp = await fetch('./data/registeredBankAccounts.json');
-                if (relResp.ok) {
-                    const relData = await relResp.json();
-                    allRegisteredAccounts = Array.isArray(relData) ? relData : (relData.data || []);
-                    const el = document.getElementById('serverInfo');
-                    if (el) el.textContent = (el.textContent.replace(/\s*\|\s*Data:.*/,'') || 'Server') + ` | Data: static-relative`;
-                    return;
-                } else {
-                    console.info('Relative static file not available (status:', relResp.status, ')');
-                }
-            } catch (err) {
-                console.warn('Relative static fetch failed:', err);
-            }
-
-            // Final embedded fallback
-            console.info('All static fallbacks failed — using embedded fallback data');
-            allRegisteredAccounts = FALLBACK_REGISTERED_ACCOUNTS;
-            const el = document.getElementById('serverInfo');
-            if (el) el.textContent = (el.textContent.replace(/\s*\|\s*Data:.*/,'') || 'Server') + ` | Data: fallback`;
-            return;
-        }
-
-        // Otherwise, attempt a remote fallback (raw GitHub) for convenience; if that fails, use embedded fallback.
-        try {
-            const rawUrl = 'https://raw.githubusercontent.com/Ayo454/Phone/main/data/registeredBankAccounts.json';
-            const rawResp = await fetch(rawUrl);
-            if (rawResp.ok) {
-                const rawData = await rawResp.json();
-                allRegisteredAccounts = Array.isArray(rawData) ? rawData : (rawData.data || []);
-                const el = document.getElementById('serverInfo');
-                if (el) el.textContent = (el.textContent.replace(/\s*\|\s*Data:.*/,'') || 'Server') + ` | Data: github-fallback`;
+            const response = await fetch(`${API_BASE_URL}/api/registered-accounts`);
+            if (response && response.ok) {
+                const result = await response.json();
+                allRegisteredAccounts = Array.isArray(result) ? result : (result.data || []);
+                updateServerInfoDataLabel('server');
                 return;
-            } else {
-                console.info('Raw GitHub file not available (status:', rawResp.status, ') — using embedded fallback');
             }
         } catch (err) {
-            console.warn('Fallback to raw GitHub file failed:', err);
+            console.warn('API fetch failed, trying local fallbacks:', err.message);
         }
 
-        // Final fallback: use embedded demo data
+        // Try local static JSON files (in priority order)
+        const localPaths = [
+            './data/registeredBankAccounts.json',        // admin/data/ (relative to admin page)
+            '../data/registeredBankAccounts.json',       // ../data/ (go up one level)
+            '/data/registeredBankAccounts.json',         // absolute /data/ from site root
+            'data/registeredBankAccounts.json'           // relative fallback
+        ];
+
+        for (const path of localPaths) {
+            try {
+                const resp = await fetch(path);
+                if (resp && resp.ok) {
+                    const data = await resp.json();
+                    allRegisteredAccounts = Array.isArray(data) ? data : (data.data || []);
+                    console.log(`✓ Loaded registered accounts from local: ${path}`);
+                    updateServerInfoDataLabel('static-local');
+                    return;
+                }
+            } catch (err) {
+                // Continue to next path
+            }
+        }
+
+        console.info('All local paths failed, using embedded fallback data');
         allRegisteredAccounts = FALLBACK_REGISTERED_ACCOUNTS;
+        updateServerInfoDataLabel('fallback');
+
     } catch (error) {
         console.error('Error loading registered accounts:', error);
         allRegisteredAccounts = FALLBACK_REGISTERED_ACCOUNTS;
+        updateServerInfoDataLabel('fallback');
     }
 }
 
