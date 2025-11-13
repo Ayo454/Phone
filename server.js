@@ -2082,10 +2082,18 @@ async function finalizeApplicationFromPending(pendingId) {
 }
 
 console.log('📍 About to start server on port 3000');
+
+// Small startup marker so we can verify the deployed commit in Render logs.
+// Render often exposes commit info in env vars (e.g. COMMIT_SHA) — we include that if available,
+// otherwise include a timestamp. This makes it easy to confirm the running code is the new commit.
+const STARTUP_MARKER = process.env.STARTUP_MARKER || `startup:${new Date().toISOString()}`;
+console.log(`🔖 Startup marker: ${STARTUP_MARKER} ${process.env.COMMIT_SHA ? `(commit:${process.env.COMMIT_SHA})` : ''}`);
+
 const server = app.listen(process.env.PORT || 3000, '0.0.0.0', function() {
     console.log(`✅ Server running on http://0.0.0.0:${process.env.PORT || 3000}`);
     console.log(`📨 Ready to accept connections`);
     console.log(`🌐 Accessible at: https://phone-4hza.onrender.com (Render) or http://localhost:3000 (Local)`);
+    console.log(`🔖 Startup marker (again): ${STARTUP_MARKER}`);
 });
 
 server.on('error', (err) => {
