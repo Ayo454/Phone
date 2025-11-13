@@ -2,7 +2,7 @@
 
 const API_BASE_URL = (() => {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return 'http://localhost:3000';
+        return '';
     }
     return window.location.origin;
 })();
@@ -12,6 +12,7 @@ console.log('🔎 bank-admin: computed API_BASE_URL =', API_BASE_URL);
 
 let allApplications = [];
 let allTransfers = [];
+let allRegisteredAccounts = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -86,7 +87,9 @@ async function loadApplications() {
         }
         
         // Load transfers
-        await loadTransfers();
+            await loadTransfers();
+            // Load registered bank accounts (for active accounts view)
+            await loadRegisteredAccounts();
         
         populateTables();
         updateStats();
@@ -110,6 +113,24 @@ async function loadTransfers() {
     } catch (error) {
         console.error('Error loading transfers:', error);
         allTransfers = [];
+    }
+}
+
+// Load Registered Accounts
+async function loadRegisteredAccounts() {
+    try {
+        // If API_BASE_URL is empty (local dev), use relative path
+        const base = API_BASE_URL || '';
+        const response = await fetch(`${base}/api/registered-accounts`);
+        if (response.ok) {
+            const result = await response.json();
+            allRegisteredAccounts = Array.isArray(result) ? result : (result.data || []);
+        } else {
+            allRegisteredAccounts = [];
+        }
+    } catch (error) {
+        console.error('Error loading registered accounts:', error);
+        allRegisteredAccounts = [];
     }
 }
 
@@ -174,8 +195,28 @@ function populateTables() {
 
     // Active Accounts - Approved Only with Transfers
     accountsContainer.innerHTML = '';
-    const activeAccounts = allApplications.filter(app => app.status === 'approved');
-    
+    // Merge approved NATE applications with registered bank accounts and dedupe by account number
+    const approvedApps = allApplications.filter(app => app.status === 'approved') || [];
+    const registered = allRegisteredAccounts || [];
+
+    // Map registered accounts to a compatible shape
+    const mappedRegistered = registered.map(r => ({
+        accountNumber: r.accountNumber,
+        fullName: r.accountHolderName || r.fullName || 'N/A',
+        accountType: r.accountType || 'Registered Account',
+        email: r.email || '',
+        phone: r.phone || '',
+        status: r.status || 'registered'
+    }));
+
+    // Combine and dedupe (prefer application record if duplicate)
+    const byAcc = {};
+    approvedApps.concat(mappedRegistered).forEach(a => {
+        byAcc[String(a.accountNumber)] = byAcc[String(a.accountNumber)] || a;
+    });
+
+    const activeAccounts = Object.values(byAcc);
+
     if (activeAccounts.length > 0) {
         const accountsTable = document.createElement('table');
         accountsTable.className = 'table';

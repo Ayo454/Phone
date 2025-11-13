@@ -2099,6 +2099,21 @@ app.get('/__health', (req, res) => {
     });
 });
 
+// Return registered bank accounts (used by admin UI)
+app.get('/api/registered-accounts', (req, res) => {
+    try {
+        let registered = [];
+        if (fs.existsSync(REGISTERED_BANK_ACCOUNTS_FILE)) {
+            const data = fs.readFileSync(REGISTERED_BANK_ACCOUNTS_FILE, 'utf8');
+            if (data && data.trim()) registered = JSON.parse(data);
+        }
+        return res.json({ success: true, data: registered });
+    } catch (err) {
+        console.error('Error reading registeredBankAccounts.json:', err.message);
+        return res.status(500).json({ success: false, message: 'Failed to load registered accounts' });
+    }
+});
+
 const server = app.listen(process.env.PORT || 3000, '0.0.0.0', function() {
     console.log(`✅ Server running on http://0.0.0.0:${process.env.PORT || 3000}`);
     console.log(`📨 Ready to accept connections`);
