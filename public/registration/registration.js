@@ -289,9 +289,9 @@ async function handleFormSubmit(e) {
                 }
                 await registerViaAPI(formData);
             } else {
-                showSuccess('Registration successful! Redirecting to login...');
+                showSuccess('Registration successful! Redirecting to your dashboard...');
                 setTimeout(() => {
-                    window.location.href = '../index.html';
+                    window.location.href = 'dashboard.html';
                 }, 2000);
             }
         } else {
@@ -339,9 +339,9 @@ async function registerViaAPI(formData) {
         const data = await response.json();
 
         if (data && data.success) {
-            showSuccess('Registration successful! Redirecting to login...');
+            showSuccess('Registration successful! Redirecting to your dashboard...');
             setTimeout(() => {
-                window.location.href = '../index.html';
+                window.location.href = 'dashboard.html';
             }, 2000);
         } else {
             showError(data.message || 'Registration failed. Please try again.');
