@@ -2,19 +2,13 @@
   # Run build script to copy static files to public directory
   command = "node build.js"
   publish = "public"
-  functions = "functions"
-  ignore = "git diff --quiet HEAD~1"
 
-[context.production]
-  command = "node build.js"
-  publish = "public"
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 [dev]
   # Useful when running Netlify Dev locally
   command = "npm start"
   port = 8888
-
-[context.production.environment]
-  # Optionally set your API base URL here if your backend is deployed elsewhere (e.g., Render)
-  # Example: API_BASE_URL = "https://phone-4hza.onrender.com"
-  # You can set this in the Netlify UI under Site settings -> Build & deploy -> Environment
