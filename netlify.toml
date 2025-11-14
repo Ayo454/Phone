@@ -1,6 +1,13 @@
 [build]
-  # No build command required for this simple static repo (plain HTML/CSS/JS)
-  publish = "."
+  # Run build script to copy static files to public directory
+  command = "node build.js"
+  publish = "public"
+  functions = "functions"
+  ignore = "git diff --quiet HEAD~1"
+
+[context.production]
+  command = "node build.js"
+  publish = "public"
 
 [dev]
   # Useful when running Netlify Dev locally

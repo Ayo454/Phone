@@ -1,0 +1,22 @@
+{
+  "name": "phone-root",
+  "version": "1.0.0",
+  "description": "Root package.json to ensure build systems install deps and start the app in student-jobs/",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.81.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "multer": "^1.4.5-lts.1",
+    "stripe": "^14.0.0",
+    "coinbase-commerce": "^1.0.5",
+    "uuid": "^9.0.1",
+    "nodemailer": "^6.9.4"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

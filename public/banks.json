@@ -1,0 +1,54 @@
+{
+  "United States": [
+    { "name": "Bank of America", "code": "BAC", "website": "https://www.bankofamerica.com" },
+    { "name": "Chase Bank", "code": "JPM", "website": "https://www.chase.com" },
+    { "name": "Wells Fargo", "code": "WFC", "website": "https://www.wellsfargo.com" },
+    { "name": "Citibank", "code": "C", "website": "https://www.citibank.com" }
+  ],
+  "United Kingdom": [
+    { "name": "HSBC", "code": "HSBA", "website": "https://www.hsbc.co.uk" },
+    { "name": "Barclays", "code": "BARC", "website": "https://www.barclays.co.uk" },
+    { "name": "Lloyds Bank", "code": "LLOY", "website": "https://www.lloydsbankinggroup.com" },
+    { "name": "NatWest Group", "code": "NWG", "website": "https://www.natwest.com" }
+  ],
+  "Nigeria": [
+    { "name": "First Bank of Nigeria", "code": "FIRSTBANK", "website": "https://www.firstbanknigeria.com" },
+    { "name": "Zenith Bank", "code": "ZENITHBANK", "website": "https://www.zenithbank.com" },
+    { "name": "GTBank", "code": "GTBANK", "website": "https://www.gtbank.com" },
+    { "name": "Access Bank", "code": "ACCESSBANK", "website": "https://www.accessbankplc.com" },
+    { "name": "Guaranty Trust Bank", "code": "GTB", "website": "https://www.gtbank.com" },
+    { "name": "United Bank for Africa", "code": "UBA", "website": "https://www.ubagroup.com" },
+    { "name": "Opay (OPay Mobile Money)", "code": "OPAY", "type": "mobile", "website": "https://www.opay.co" }
+  ],
+  "Canada": [
+    { "name": "Royal Bank of Canada", "code": "RBC", "website": "https://www.rbc.com" },
+    { "name": "Toronto-Dominion Bank", "code": "TD", "website": "https://www.td.com" },
+    { "name": "Bank of Montreal", "code": "BMO", "website": "https://www.bmo.com" },
+    { "name": "Scotiabank", "code": "BNS", "website": "https://www.scotiabank.com" }
+  ],
+  "Australia": [
+    { "name": "Commonwealth Bank", "code": "CBA", "website": "https://www.commbank.com.au" },
+    { "name": "Westpac", "code": "WBC", "website": "https://www.westpac.com.au" },
+    { "name": "ANZ", "code": "ANZ", "website": "https://www.anz.com.au" },
+    { "name": "NAB", "code": "NAB", "website": "https://www.nab.com.au" }
+  ],
+  "Germany": [
+    { "name": "Deutsche Bank", "code": "DBK", "website": "https://www.deutsche-bank.de" },
+    { "name": "Commerzbank", "code": "CBK", "website": "https://www.commerzbank.de" },
+    { "name": "DZ Bank", "code": "DZBANK", "website": "https://www.dzbank.de" },
+    { "name": "Landesbank Baden-Württemberg", "code": "LBBW", "website": "https://www.lbbw.de" }
+  ],
+  "France": [
+    { "name": "BNP Paribas", "code": "BNPP", "website": "https://www.bnpparibas.fr" },
+    { "name": "Société Générale", "code": "GLE", "website": "https://www.societegenerale.fr" },
+    { "name": "Crédit Agricole", "code": "ACA", "website": "https://www.credit-agricole.fr" },
+    { "name": "Crédit Mutuel", "code": "CM", "website": "https://www.creditmutuel.fr" }
+  ],
+  "India": [
+    { "name": "State Bank of India", "code": "SBIN", "website": "https://www.sbi.co.in" },
+    { "name": "HDFC Bank", "code": "HDFCBANK", "website": "https://www.hdfcbank.com" },
+    { "name": "ICICI Bank", "code": "ICICIBANK", "website": "https://www.icicibank.com" },
+    { "name": "Axis Bank", "code": "AXISBANK", "website": "https://www.axisbank.com" },
+    { "name": "Kotak Mahindra Bank", "code": "KOTAKBANK", "website": "https://www.kotak.com" }
+  ]
+}
