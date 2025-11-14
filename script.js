@@ -16,12 +16,7 @@ const API_BASE_URL = (() => {
         return 'https://phone-4hza.onrender.com';
     }
     
-    // For Netlify or any other deployed domain, use Render backend
-    if (window.location.hostname.includes('netlify.app') || !window.location.hostname.includes('localhost')) {
-        return 'https://phone-4hza.onrender.com';
-    }
-    
-    // Default: use same origin (localhost only)
+    // Default: use same origin
     return window.location.origin;
 })();
 
@@ -427,22 +422,6 @@ async function submitApplication(formData) {
             method: 'POST',
             body: formData
         });
-
-        // Check if response is ok
-        if (!resp.ok) {
-            console.error('API Error:', resp.status, resp.statusText);
-            showNotification(`Server error: ${resp.status}. Please try again.`, 'error');
-            return;
-        }
-
-        // Check content type before parsing JSON
-        const contentType = resp.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            const text = await resp.text();
-            console.error('Non-JSON response received:', text);
-            showNotification('Server returned an unexpected response. Please try again.', 'error');
-            return;
-        }
 
         const data = await resp.json();
         if (data && data.success) {

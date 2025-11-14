@@ -69,6 +69,18 @@ body {
     color: #0041C2;
 }
 
+/* Small helpers for member dashboard */
+.logout-link {
+    color: #dc3545;
+    text-decoration: none;
+}
+.logout-link:hover {
+    opacity: 0.9;
+}
+.username-highlight {
+    color: #800080;
+}
+
 .nav-links a::after {
     content: '';
     display: block;
@@ -394,6 +406,24 @@ footer {
     margin-bottom: 1.5rem;
 }
 
+/* Company dashboard specific styles (moved from inline/internal styles) */
+.company-hero {padding:24px 16px;background:#f6f9fb;border-radius:8px;margin-bottom:16px}
+.company-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.card{background:#ffffff;border:1px solid #e6eef3;padding:16px;border-radius:8px}
+.muted{color:#6b7280}
+.actions{margin-top:12px}
+.btn{display:inline-block;padding:8px 12px;background:#2563eb;color:#fff;border-radius:6px;text-decoration:none}
+.btn-secondary{background:#e2e8f0;color:#0f172a;padding:6px 10px;border-radius:6px;text-decoration:none;display:inline-block}
+.dash-header{padding:12px 16px;border-bottom:1px solid #e6eef3;display:flex;align-items:center;justify-content:space-between}
+.brand-link{text-decoration:none;color:inherit}
+.dash-main{max-width:980px;margin:20px auto;padding:0 16px}
+.no-margin{margin:0}
+.mb-6{margin-bottom:6px}
+.h3-no-top{margin-top:0}
+.section-margin-top{margin-top:18px}
+.quick-links-list{margin:8px 0 0 18px;color:#374151}
+.dash-footer{padding:12px 16px;border-top:1px solid #e6eef3;text-align:center;color:#6b7280}
+
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
@@ -600,5 +630,128 @@ footer {
 .payment-info {
     color: #666;
     margin-top: 1.5rem;
+}
+
+/* Registration form dashboard styles */
+.reg-hero-section {
+    background: linear-gradient(rgba(0,65,194,0.8), rgba(0,65,194,0.8)) !important;
+}
+
+.reg-form-wrapper {
+    padding: 5rem 5%;
+    background: #f8f9fa;
+}
+
+.reg-form-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.reg-form-card {
+    background: white;
+    padding: 3rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.reg-form-card h2 {
+    text-align: center;
+    color: #0041C2;
+    margin-bottom: 2rem;
+}
+
+.reg-form-group {
+    margin-bottom: 1.2rem;
+}
+
+.reg-form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.reg-form-input,
+.reg-form-select,
+.reg-form-textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.reg-form-textarea {
+    height: 120px;
+    resize: vertical;
+}
+
+.reg-form-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.reg-form-btn-submit {
+    flex: 1;
+    margin: 0;
+}
+
+.reg-form-btn-reset {
+    flex: 1;
+    background: #999;
+    margin: 0;
+}
+
+.reg-form-link {
+    text-align: center;
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 1.5rem;
+}
+
+.reg-form-link a {
+    color: #0041C2;
+    text-decoration: none;
+}
+
+.reg-benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin-top: 3rem;
+}
+
+.reg-benefit-card {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.reg-benefit-card i {
+    font-size: 2rem;
+    color: #0041C2;
+    margin-bottom: 0.5rem;
+}
+
+.reg-benefit-card h4 {
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.reg-benefit-card p {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.reg-footer {
+    background: #0041C2;
+    color: white;
+    padding: 2rem 5%;
+    text-align: center;
+}
+
+.reg-footer p {
+    margin: 0;
+    color: white;
 }
 
