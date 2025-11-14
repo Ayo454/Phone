@@ -428,6 +428,22 @@ async function submitApplication(formData) {
             body: formData
         });
 
+        // Check if response is ok
+        if (!resp.ok) {
+            console.error('API Error:', resp.status, resp.statusText);
+            showNotification(`Server error: ${resp.status}. Please try again.`, 'error');
+            return;
+        }
+
+        // Check content type before parsing JSON
+        const contentType = resp.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await resp.text();
+            console.error('Non-JSON response received:', text);
+            showNotification('Server returned an unexpected response. Please try again.', 'error');
+            return;
+        }
+
         const data = await resp.json();
         if (data && data.success) {
             showNotification(data.message || 'Application submitted successfully!', 'success');
