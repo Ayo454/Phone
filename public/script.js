@@ -16,7 +16,12 @@ const API_BASE_URL = (() => {
         return 'https://phone-4hza.onrender.com';
     }
     
-    // Default: use same origin
+    // For Netlify or any other deployed domain, use Render backend
+    if (window.location.hostname.includes('netlify.app') || !window.location.hostname.includes('localhost')) {
+        return 'https://phone-4hza.onrender.com';
+    }
+    
+    // Default: use same origin (localhost only)
     return window.location.origin;
 })();
 
