@@ -6,7 +6,7 @@ const API_BASE_URL = (() => {
         return window.RENDER_API_URL;
     }
     
-    // For localhost/127.0.0.1 dev, use Render instead
+    // For localhost/127.0.0.1 dev, use Render backend
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         return 'https://phone-4hza.onrender.com';
     }
@@ -16,7 +16,12 @@ const API_BASE_URL = (() => {
         return 'https://phone-4hza.onrender.com';
     }
     
-    // Default: use same origin
+    // For Netlify or any other deployed domain, use Render backend
+    if (window.location.hostname.includes('netlify.app') || !window.location.hostname.includes('localhost')) {
+        return 'https://phone-4hza.onrender.com';
+    }
+    
+    // Default: use same origin (localhost only)
     return window.location.origin;
 })();
 
