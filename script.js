@@ -940,18 +940,6 @@ async function finalizeApplication(pendingId) {
 document.addEventListener('DOMContentLoaded', () => {
     handlePaymentVerification();
 });
-    // Apply button click
-    const applyBtn = document.querySelector('.apply-btn');
-    if (applyBtn) {
-        applyBtn.addEventListener('click', handleApplyClick);
-    }
-
-    // Smooth scroll for navigation links
-    const navLinks = document.querySelectorAll('.nav-links a');
-    navLinks.forEach(link => {
-        link.addEventListener('click', handleNavClick);
-    });
-}
 
 // Show card / gift-card options
 function showCardOptions(pendingId) {
