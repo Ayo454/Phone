@@ -1,5 +1,6 @@
 {
   "bitcoinWallet": "YOUR_BITCOIN_WALLET_ADDRESS_HERE",
   "applicationFee": 50,
-  "currency": "USD"
+  "currency": "USD",
+  "enableClaudeHaiku": true
 }
