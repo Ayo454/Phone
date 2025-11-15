@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // API Configuration - Point to Node.js backend
 // Support both localhost development and Render deployment
 const API_BASE_URL = (() => {
@@ -1812,5 +1811,3 @@ async function finalizeApplication(pendingId) {
 document.addEventListener('DOMContentLoaded', () => {
     handlePaymentVerification();
 });
-
->>>>>>> ae83cad5b3b56f1c5efb5f6c9894034f4eca09c1
