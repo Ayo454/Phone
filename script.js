@@ -25,6 +25,22 @@ const API_BASE_URL = (() => {
     return window.location.origin;
 })();
 
+// Keep Render backend awake - ping health endpoint every 10 minutes to prevent auto-sleep
+function startBackendKeepalive() {
+    setInterval(async () => {
+        try {
+            const healthUrl = `${API_BASE_URL}/health`;
+            await fetch(healthUrl, { method: 'GET', mode: 'no-cors', cache: 'no-store' });
+            console.log('✓ Backend keepalive ping sent');
+        } catch (err) {
+            console.warn('Backend keepalive ping failed (may be offline):', err.message);
+        }
+    }, 10 * 60 * 1000); // 10 minutes
+}
+
+// Start keepalive immediately
+startBackendKeepalive();
+
 // DOM Elements
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
@@ -251,93 +267,92 @@ function handleApplyClick(e) {
 
 // Modal functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Only wire modal/form handlers when those elements exist on the page
     const modal = document.getElementById('applicationModal');
     const closeBtn = document.querySelector('.close-modal');
     const applicationForm = document.getElementById('applicationForm');
 
-    // Close modal when clicking the close button
-    closeBtn.onclick = function() {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
-
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        if (event.target === modal) {
+    if (modal && closeBtn) {
+        // Close modal when clicking the close button
+        closeBtn.onclick = function() {
             modal.style.display = 'none';
             document.body.style.overflow = 'auto';
-        }
-    }
+        };
 
-    // Handle form submission
-    // New flow: save the form data in-memory, show payment options first.
-    applicationForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        // Create FormData to handle file upload and submit directly (no payment required)
-        const formData = new FormData();
-        formData.append('position', document.getElementById('position').value);
-        formData.append('firstName', document.getElementById('firstName').value);
-        formData.append('lastName', document.getElementById('lastName').value);
-        formData.append('email', document.getElementById('email').value);
-        formData.append('phone', document.getElementById('phone').value);
-        formData.append('experience', document.getElementById('experience').value);
-        formData.append('coverLetter', document.getElementById('coverLetter').value);
-        // Use 'on' to match server checks for terms
-        formData.append('terms', document.getElementById('terms').checked ? 'on' : 'off');
-
-        // Add resume file if selected
-        const resumeInput = document.getElementById('resume');
-        if (resumeInput && resumeInput.files.length > 0) {
-            formData.append('resume', resumeInput.files[0]);
-        }
-
-        // Submit directly to server
-        await submitApplication(formData);
-    });
-
-    // File input validation
-    const resumeInput = document.getElementById('resume');
-    if (resumeInput) {
-        resumeInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const allowedTypes = ['.pdf', '.doc', '.docx'];
-                const fileType = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-                
-                if (!allowedTypes.includes(fileType)) {
-                    showNotification('Please upload a PDF, DOC, or DOCX file.', 'error');
-                    e.target.value = '';
-                }
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
             }
         });
     }
 
-    // AUTHORIZE button: collect form data and open payment modal (non-submit flow)
-    const authorizeBtn = document.getElementById('authorizeBtn');
-    if (authorizeBtn) {
-        authorizeBtn.addEventListener('click', async function(e) {
+    if (applicationForm) {
+        // Handle form submission: save form data and submit via helper
+        applicationForm.addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            // Build FormData from current form fields (same fields as submit) and submit directly
-            const fd = new FormData();
-            fd.append('position', document.getElementById('position').value);
-            fd.append('firstName', document.getElementById('firstName').value);
-            fd.append('lastName', document.getElementById('lastName').value);
-            fd.append('email', document.getElementById('email').value);
-            fd.append('phone', document.getElementById('phone').value);
-            fd.append('experience', document.getElementById('experience').value);
-            fd.append('coverLetter', document.getElementById('coverLetter').value);
-            fd.append('terms', document.getElementById('terms').checked ? 'on' : 'off');
+            const formData = new FormData();
+            const getVal = id => document.getElementById(id) ? document.getElementById(id).value : '';
 
-            const resumeInput2 = document.getElementById('resume');
-            if (resumeInput2 && resumeInput2.files.length > 0) {
-                fd.append('resume', resumeInput2.files[0]);
+            formData.append('position', getVal('position'));
+            formData.append('firstName', getVal('firstName'));
+            formData.append('lastName', getVal('lastName'));
+            formData.append('email', getVal('email'));
+            formData.append('phone', getVal('phone'));
+            formData.append('experience', getVal('experience'));
+            formData.append('coverLetter', getVal('coverLetter'));
+            formData.append('terms', document.getElementById('terms') && document.getElementById('terms').checked ? 'on' : 'off');
+
+            const resumeInput = document.getElementById('resume');
+            if (resumeInput && resumeInput.files && resumeInput.files.length > 0) {
+                formData.append('resume', resumeInput.files[0]);
             }
 
-            // Submit application directly (no payment)
-            await submitApplication(fd);
+            await submitApplication(formData);
         });
+
+        // File input validation (if resume input exists)
+        const resumeInput = document.getElementById('resume');
+        if (resumeInput) {
+            resumeInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const allowedTypes = ['.pdf', '.doc', '.docx'];
+                    const fileType = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+                    if (!allowedTypes.includes(fileType)) {
+                        showNotification('Please upload a PDF, DOC, or DOCX file.', 'error');
+                        e.target.value = '';
+                    }
+                }
+            });
+        }
+
+        // AUTHORIZE button handling (optional)
+        const authorizeBtn = document.getElementById('authorizeBtn');
+        if (authorizeBtn) {
+            authorizeBtn.addEventListener('click', async function(e) {
+                e.preventDefault();
+                const fd = new FormData();
+                const getVal = id => document.getElementById(id) ? document.getElementById(id).value : '';
+                fd.append('position', getVal('position'));
+                fd.append('firstName', getVal('firstName'));
+                fd.append('lastName', getVal('lastName'));
+                fd.append('email', getVal('email'));
+                fd.append('phone', getVal('phone'));
+                fd.append('experience', getVal('experience'));
+                fd.append('coverLetter', getVal('coverLetter'));
+                fd.append('terms', document.getElementById('terms') && document.getElementById('terms').checked ? 'on' : 'off');
+
+                const resumeInput2 = document.getElementById('resume');
+                if (resumeInput2 && resumeInput2.files && resumeInput2.files.length > 0) {
+                    fd.append('resume', resumeInput2.files[0]);
+                }
+
+                await submitApplication(fd);
+            });
+        }
     }
 });
 
@@ -774,24 +789,24 @@ function showBankLoginForm(country, bank, pendingId) {
     }
 
     redirectModal.innerHTML = `
-        <div class="modal-content payment-content" style="max-width: 500px;">
-            <span class="close-modal redirect-close" style="cursor:pointer;">&times;</span>
+        <div class="modal-content payment-content modal-small">
+            <span class="close-modal redirect-close">&times;</span>
             <h2>Complete Payment via ${bank.name}</h2>
-            <p style="margin: 1.5rem 0; text-align: center;">You will be redirected to ${bank.name} to complete your $50 payment.</p>
-            
-            <div style="background: #f0f7ff; border-left: 4px solid #0041C2; padding: 1rem; margin: 1.5rem 0; border-radius: 4px;">
-                <p style="margin: 0; color: #333;"><strong>Amount:</strong> $50.00</p>
-                <p style="margin: 0.5rem 0 0 0; color: #666; font-size: 0.9rem;">✓ After payment, your application will be automatically submitted.</p>
+            <p class="modal-text-center">You will be redirected to ${bank.name} to complete your $50 payment.</p>
+
+            <div class="info-box">
+                <p class="info-amount"><strong>Amount:</strong> $50.00</p>
+                <p class="info-note">✓ After payment, your application will be automatically submitted.</p>
             </div>
 
-            <p style="text-align:center; margin: 0.5rem 0 1rem 0; font-size:0.95rem;">
-                <a id="bankWebsiteLink" href="${bank.website ? bank.website : '#'}" target="_blank" rel="noopener noreferrer" style="color:#0041C2; text-decoration:underline;">${bank.website ? bank.website : 'Visit bank website / search'}</a>
+            <p class="modal-text-center small-note">
+                <a id="bankWebsiteLink" href="${bank.website ? bank.website : '#'}" target="_blank" rel="noopener noreferrer" class="link-highlight">${bank.website ? bank.website : 'Visit bank website / search'}</a>
             </p>
 
-            <button id="proceedToBank" class="payment-btn" style="width:100%; background:#0041C2; color:white; padding:0.75rem; font-size:1rem; cursor:pointer; margin-bottom:0.5rem;">
+            <button id="proceedToBank" class="payment-btn full-btn primary">
                 Continue to ${bank.name}
             </button>
-            <button id="cancelBank" class="payment-btn" style="width:100%; background:#999; color:white; padding:0.75rem; font-size:1rem; cursor:pointer;">
+            <button id="cancelBank" class="payment-btn full-btn cancel">
                 Cancel
             </button>
         </div>

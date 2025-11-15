@@ -380,6 +380,33 @@ footer {
     color: #000;
 }
 
+/* Small modal variant */
+.modal-small {
+    max-width: 500px;
+}
+
+.modal-text-center {
+    margin: 1.5rem 0;
+    text-align: center;
+}
+
+.info-box {
+    background: #f0f7ff;
+    border-left: 4px solid #0041C2;
+    padding: 1rem;
+    margin: 1.5rem 0;
+    border-radius: 4px;
+}
+
+.info-box .info-amount { margin: 0; color: #333; }
+.info-box .info-note { margin: 0.5rem 0 0 0; color: #666; font-size: 0.9rem; }
+
+.link-highlight { color: #0041C2; text-decoration: underline; }
+
+.full-btn { width: 100%; padding: 0.75rem; font-size: 1rem; cursor: pointer; border: none; border-radius: 6px; color: #fff; display: block; text-align: center; }
+.full-btn.primary { background: #0041C2; margin-bottom: 0.5rem; }
+.full-btn.cancel { background: #999; }
+
 .application-form {
     margin-top: 2rem;
 }

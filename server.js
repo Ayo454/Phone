@@ -99,6 +99,11 @@ app.get('/favicon.ico', (req, res) => {
     res.status(204).send();
 });
 
+// Health check endpoint - keeps Render backend awake and responds quickly
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 app.get('/', (req, res) => {
     try {
         const filePath = path.join(__dirname, 'index.html');
@@ -282,6 +287,106 @@ app.post('/api/register', express.json(), async (req, res) => {
             success: false,
             message: 'Failed to register user'
         });
+    }
+});
+
+// ==================== /api/preregister: Create a pending registration that requires payment ====================
+app.post('/api/preregister', express.json(), (req, res) => {
+    try {
+        const { firstName, lastName, email, phone, userType, organization, newsletter, createdAt, enableClaudeHaiku } = req.body;
+
+        if (!firstName || !lastName || !email || !phone) {
+            return res.status(400).json({ success: false, message: 'Missing required fields for preregistration' });
+        }
+
+        const pendingId = uuidv4();
+        const pending = loadPendingApplications();
+        pending[pendingId] = {
+            type: 'registration',
+            firstName,
+            lastName,
+            email,
+            phone,
+            userType: userType || '',
+            organization: organization || '',
+            newsletter: !!newsletter,
+            enableClaudeHaiku: !!enableClaudeHaiku,
+            createdAt: createdAt || new Date().toISOString(),
+            paymentVerified: false,
+            createdAtTs: new Date().toISOString()
+        };
+        savePendingApplications(pending);
+
+        return res.json({ success: true, message: 'Pending registration created; ready for payment', pendingId });
+    } catch (err) {
+        console.error('Error in /api/preregister:', err);
+        res.status(500).json({ success: false, message: 'Failed to create pending registration' });
+    }
+});
+
+// ==================== /api/finalize-registration: Finalize a pending registration after payment verification ====================
+app.post('/api/finalize-registration', express.json(), async (req, res) => {
+    try {
+        const { pendingId } = req.body;
+        if (!pendingId) return res.status(400).json({ success: false, message: 'Missing pendingId' });
+
+        const pending = loadPendingApplications();
+        if (!pending[pendingId] || !pending[pendingId].paymentVerified) {
+            return res.status(400).json({ success: false, message: 'Invalid or unpaid pending registration' });
+        }
+
+        const reg = pending[pendingId];
+
+        // Attempt to save to Supabase users table if available
+        if (supabase) {
+            try {
+                await supabase.from('users').insert([{ 
+                    first_name: reg.firstName,
+                    last_name: reg.lastName,
+                    email: reg.email,
+                    phone: reg.phone,
+                    user_type: reg.userType || '',
+                    organization: reg.organization || '',
+                    newsletter_subscribed: reg.newsletter || false,
+                    created_at: reg.createdAt
+                }]);
+            } catch (e) {
+                console.warn('Supabase finalize-registration error:', e.message || e);
+            }
+        }
+
+        // Save to local registrations.json as fallback
+        const registrationsFile = path.join(DATA_DIR, 'registrations.json');
+        let registrations = [];
+        try {
+            if (fs.existsSync(registrationsFile)) registrations = JSON.parse(fs.readFileSync(registrationsFile, 'utf-8'));
+        } catch (e) { console.warn('Failed to load registrations.json:', e.message); }
+
+        const newUser = {
+            id: uuidv4(),
+            first_name: reg.firstName,
+            last_name: reg.lastName,
+            email: reg.email,
+            phone: reg.phone,
+            user_type: reg.userType || '',
+            organization: reg.organization || '',
+            newsletter_subscribed: reg.newsletter || false,
+            created_at: reg.createdAt || new Date().toISOString(),
+            paymentMethod: reg.paymentMethod || 'card',
+            paidAt: reg.paidAt || new Date().toISOString()
+        };
+
+        registrations.push(newUser);
+        fs.writeFileSync(registrationsFile, JSON.stringify(registrations, null, 2), 'utf-8');
+
+        // Remove pending record
+        delete pending[pendingId];
+        savePendingApplications(pending);
+
+        return res.json({ success: true, message: 'Registration finalized', data: newUser });
+    } catch (err) {
+        console.error('Error in /api/finalize-registration:', err);
+        res.status(500).json({ success: false, message: 'Failed to finalize registration' });
     }
 });
 
@@ -1472,6 +1577,109 @@ app.put('/api/applications/:identifier/status', express.json(), (req, res) => {
             message: 'Failed to update application status',
             error: error.message
         });
+    }
+});
+
+// ==================== /api/users/:id/status: Update user registration status (approve/reject) ====================
+app.put('/api/users/:id/status', express.json(), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        if (!['approved', 'rejected', 'pending', 'active'].includes(status)) {
+            return res.status(400).json({ success: false, message: 'Invalid status. Use: approved, rejected, pending, active' });
+        }
+
+        // Prefer Supabase update if client available
+        if (supabase) {
+            try {
+                const { data, error } = await supabase
+                    .from('users')
+                    .update({ status })
+                    .eq('id', id)
+                    .select();
+
+                if (error) {
+                    console.error('Supabase update error for user status:', error.message || error);
+                    return res.status(500).json({ success: false, message: 'Failed to update user status in Supabase', error: error.message || error });
+                }
+
+                console.log(`✓ User ${id} status updated in Supabase → ${status}`);
+                return res.json({ success: true, message: `User status updated to ${status}`, data });
+            } catch (err) {
+                console.error('Error updating user status in Supabase:', err.message || err);
+                // fallthrough to file fallback
+            }
+        }
+
+        // File fallback: update data/registrations.json (if exists)
+        const registrationsFile = path.join(DATA_DIR, 'registrations.json');
+        if (fs.existsSync(registrationsFile)) {
+            try {
+                const fileContent = fs.readFileSync(registrationsFile, 'utf-8');
+                const parsed = JSON.parse(fileContent);
+                const users = Array.isArray(parsed) ? parsed : [];
+                const idx = users.findIndex(u => String(u.id) === String(id) || String(u.email) === String(id));
+                if (idx === -1) {
+                    return res.status(404).json({ success: false, message: 'User not found in registrations file' });
+                }
+                users[idx].status = status;
+                users[idx].updatedAt = new Date().toISOString();
+                fs.writeFileSync(registrationsFile, JSON.stringify(users, null, 2));
+                console.log(`✓ User ${id} status updated in file → ${status}`);
+                return res.json({ success: true, message: `User status updated to ${status}`, data: users[idx] });
+            } catch (err) {
+                console.error('Error updating registrations file:', err);
+                return res.status(500).json({ success: false, message: 'Failed to update registrations file', error: err.message });
+            }
+        }
+
+        return res.status(501).json({ success: false, message: 'Supabase not available and no registrations file to update' });
+    } catch (error) {
+        console.error('Error in /api/users/:id/status:', error);
+        res.status(500).json({ success: false, message: 'Failed to update user status', error: error.message });
+    }
+});
+
+// ==================== /api/users: Retrieve users (supabase or file fallback) ====================
+app.get('/api/users', async (req, res) => {
+    try {
+        // Try Supabase first
+        if (supabase) {
+            try {
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.warn('Supabase /api/users returned error:', error.message || error);
+                } else {
+                    return res.json(data || []);
+                }
+            } catch (err) {
+                console.warn('Error fetching users from Supabase:', err.message || err);
+            }
+        }
+
+        // Fallback: read from data/registrations.json
+        const registrationsFile = path.join(DATA_DIR, 'registrations.json');
+        if (fs.existsSync(registrationsFile)) {
+            try {
+                const content = fs.readFileSync(registrationsFile, 'utf-8');
+                const parsed = JSON.parse(content);
+                return res.json(Array.isArray(parsed) ? parsed : []);
+            } catch (err) {
+                console.error('Error reading registrations file:', err.message || err);
+                return res.status(500).json({ success: false, message: 'Failed to read registrations file', error: err.message });
+            }
+        }
+
+        // No data available
+        return res.json([]);
+    } catch (error) {
+        console.error('Error in /api/users:', error);
+        res.status(500).json({ success: false, message: 'Failed to retrieve users', error: error.message });
     }
 });
 
