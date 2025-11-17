@@ -1519,7 +1519,7 @@ app.get('/api/incoming-transfers', (req, res) => {
 });
 
 // ==================== /api/applications/:accountNumber/status: Update application status (approve/reject) ====================
-app.put('/api/applications/:identifier/status', express.json(), (req, res) => {
+app.put('/api/applications/:identifier/status', express.json(), async (req, res) => {
     try {
         const { identifier } = req.params; // can be accountNumber or id
         const { status } = req.body;
@@ -1532,6 +1532,29 @@ app.put('/api/applications/:identifier/status', express.json(), (req, res) => {
             });
         }
 
+        // First try to update in Supabase (applications table)
+        if (supabase) {
+            try {
+                const { data, error } = await supabase
+                    .from('applications')
+                    .update({ status, updatedAt: new Date().toISOString() })
+                    .eq('id', identifier)
+                    .select();
+
+                if (data && data.length > 0) {
+                    console.log(`✓ Application ${identifier} status updated in Supabase: ${status}`);
+                    return res.json({
+                        success: true,
+                        message: `Application ${status} successfully!`,
+                        data: data[0]
+                    });
+                }
+            } catch (err) {
+                console.warn('Supabase update failed, trying local file:', err.message);
+            }
+        }
+
+        // Fall back to local file (pendingApplications.json)
         const applicationsFile = path.join(DATA_DIR, 'pendingApplications.json');
         let applications = [];
         
@@ -1551,7 +1574,7 @@ app.put('/api/applications/:identifier/status', express.json(), (req, res) => {
         if (appIndex === -1) {
             return res.status(404).json({
                 success: false,
-                message: 'Application not found'
+                message: 'Application not found in Supabase or local file'
             });
         }
 
@@ -1600,12 +1623,12 @@ app.put('/api/users/:id/status', express.json(), async (req, res) => {
                     .select();
 
                 if (error) {
-                    console.error('Supabase update error for user status:', error.message || error);
-                    return res.status(500).json({ success: false, message: 'Failed to update user status in Supabase', error: error.message || error });
+                    console.warn('Supabase update error for user status:', error.message || error);
+                    // Don't return here; fall back to file-based update below if Supabase schema doesn't have `status`.
+                } else {
+                    console.log(`✓ User ${id} status updated in Supabase → ${status}`);
+                    return res.json({ success: true, message: `User status updated to ${status}`, data });
                 }
-
-                console.log(`✓ User ${id} status updated in Supabase → ${status}`);
-                return res.json({ success: true, message: `User status updated to ${status}`, data });
             } catch (err) {
                 console.error('Error updating user status in Supabase:', err.message || err);
                 // fallthrough to file fallback

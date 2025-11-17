@@ -503,15 +503,79 @@ footer {
 /* Responsive Design */
 @media (max-width: 768px) {
     .navbar {
-        padding: 1rem;
-        flex-direction: column;
+        padding: 0.75rem 5%;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        height: 56px;
     }
 
+    /* Mobile: hide nav by default and show via toggle */
+    .mobile-menu-btn {
+        display: block;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem;
+        position: absolute;
+        right: 5%;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1100;
+    }
+
+    .mobile-menu-btn .hamburger {
+        display: inline-block;
+        width: 26px;
+        height: 2px;
+        background: #333;
+        position: relative;
+        transition: transform 0.2s ease;
+    }
+    .mobile-menu-btn .hamburger::before,
+    .mobile-menu-btn .hamburger::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        width: 26px;
+        height: 2px;
+        background: #333;
+        transition: transform 0.2s ease, top 0.2s ease;
+    }
+    .mobile-menu-btn .hamburger::before { top: -8px; }
+    .mobile-menu-btn .hamburger::after { top: 8px; }
+
+    /* Hidden by default; shown as a full-width dropdown when active */
     .nav-links {
-        margin-top: 1rem;
+        display: none;
+        position: absolute;
+        top: 56px;
+        left: 0;
+        width: 100%;
+        background: white;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.08);
         flex-direction: column;
         text-align: center;
         gap: 1rem;
+        padding: 0.75rem 0;
+        z-index: 1050;
+    }
+
+    .nav-links.active {
+        display: flex;
+    }
+
+    /* When mobile menu button is active, rotate bars to X */
+    .mobile-menu-btn.active .hamburger {
+        background: transparent;
+    }
+    .mobile-menu-btn.active .hamburger::before {
+        transform: rotate(45deg);
+        top: 0;
+    }
+    .mobile-menu-btn.active .hamburger::after {
+        transform: rotate(-45deg);
+        top: 0;
     }
 
     .hero-section h1 {
@@ -520,6 +584,37 @@ footer {
 
     section {
         padding: 3rem 1rem;
+    }
+
+    .hero-section {
+        height: auto;
+        padding: 4rem 1rem 3rem;
+    }
+
+    .apply-btn {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        font-size: 1rem;
+    }
+
+    .modal-content {
+        width: 95%;
+        max-width: 720px;
+        margin: 20px auto;
+        padding: 1rem;
+    }
+
+    /* Center logo while keeping hamburger at right */
+    .navbar .logo {
+        margin: 0 auto;
+    }
+
+    /* Make nav links touch-friendly */
+    .nav-links a {
+        display: block;
+        padding: 0.75rem 1rem;
+        font-size: 1.05rem;
+        color: #333;
     }
 }
 
@@ -753,5 +848,104 @@ footer {
 .reg-footer p {
     margin: 0;
     color: white;
+}
+
+/* Registration page specific styles */
+.registration-container {
+    display: flex;
+    /* allow natural height to avoid double scrollbars on mobile */
+    /* Use `min-height: 0` for broader compatibility (avoids older Firefox issues) */
+    min-height: 0;
+}
+
+.registration-container .info-section {
+    flex: 1 1 50%;
+    background: linear-gradient(180deg, #0041C2 0%, #2b6be6 100%);
+    color: white;
+    padding: 3rem 4rem;
+    display: flex;
+    align-items: center;
+    overflow: visible; /* ensure contents don't create internal scrollbars */
+}
+
+.registration-container .info-content {
+    max-width: 560px;
+}
+
+.registration-container .info-content h1 {
+    font-size: 2rem;
+    margin-bottom: 0.25rem;
+}
+
+.registration-container .info-content .tagline {
+    opacity: 0.9;
+    margin-bottom: 1.25rem;
+}
+
+.features {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.25rem;
+}
+
+.feature {
+    flex: 1 1 0;
+    text-align: left;
+}
+
+.feature h3 { margin: 0.5rem 0 0.25rem; }
+
+.registration-container .form-section {
+    flex: 1 1 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    background: #f7f9fc;
+    overflow: visible;
+}
+
+.form-container {
+    width: 100%;
+    max-width: 520px;
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(16,24,40,0.06);
+}
+
+.form-header h2 { margin-bottom: 0.25rem; }
+.form-header p { color: #6b7280; margin-bottom: 1rem; }
+
+.message { display: none; padding: 0.75rem 1rem; margin-bottom: 1rem; border-radius: 6px; }
+.message.error-message { background:#fff1f0; color:#9f3a38; display: none; }
+.message.success-message { background:#f0fff4; color:#0b6b2b; display: none; }
+
+.form-row { gap: 1rem; }
+
+/* Checkbox layout adjustments */
+.form-group.checkbox { display: flex; align-items: center; gap: 0.5rem; }
+
+/* Mobile responsive adjustments for registration page */
+@media (max-width: 900px) {
+    .registration-container { flex-direction: column; }
+    .registration-container .info-section { order: 2; padding: 2rem; max-height: none; overflow: visible; }
+    .registration-container .form-section { order: 1; padding: 1.25rem; }
+    .features { flex-direction: column; }
+    .stats { display: none; }
+    .info-content h1 { text-align: center; }
+    .info-content p, .info-content h2 { text-align: center; }
+    .form-container { padding: 1.25rem; margin-top: 8px; width: 100%; max-width: 100%; box-sizing: border-box; }
+    .form-row { display: grid; grid-template-columns: 1fr; }
+    .form-group label { font-size: 0.95rem; }
+    .submit-btn { padding: 0.9rem; font-size: 1rem; }
+}
+
+@media (max-width: 420px) {
+    .registration-container .info-section { padding: 1.25rem; }
+    .form-container { padding: 1rem; }
+    .info-content h1 { font-size: 1.5rem; }
+    .form-header h2 { font-size: 1.25rem; }
+    .password-strength small { display:none; }
 }
 

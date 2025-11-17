@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml">
     <meta name="google-site-verification" content="KNN-6A92x7eiaco3-ffNwKrH3d20DlcsTDA5UkXzvl8" />
     
     <title>User Registration - NATE | National Alliance for Talent Exchange</title>
@@ -228,7 +229,15 @@
         }
 
         if (close) close.addEventListener('click', closeModal);
-        if (cancel) cancel.addEventListener('click', closeModal);
+        if (cancel) cancel.addEventListener('click', function(e) {
+            // Only allow cancel after approval is granted or timeout
+            const confirmBtn = document.getElementById('confirmPaidBtn');
+            if (!confirmBtn.disabled) {
+                closeModal();
+            } else {
+                showNotification('Please wait for admin approval or close this page. Do not cancel during approval process.', 'warning');
+            }
+        });
 
         if (confirm) {
             confirm.addEventListener('click', async function (e) {
@@ -270,7 +279,7 @@
                 if (sbClient) {
                     try {
                         // Upsert by email to avoid duplicates
-                        // Match exact schema: id, email, phone, user_type, organization, newsletter_subscribed, created_at, updated_at, first_name, last_name
+                        // Only include columns that exist in the Supabase users table schema
                         const payload = {
                             first_name: firstName.substring(0, 100),
                             last_name: lastName.substring(0, 100),
@@ -357,19 +366,42 @@
                     payNote.innerHTML = '<strong>Your payment has been recorded.</strong> An admin will verify and approve your registration shortly. Please wait...';
                 }
                 
-                // Poll for admin approval every 2 seconds (check localStorage set by admin)
+                // Poll for admin approval every 2 seconds (check Supabase for approved status)
                 let approvalChecks = 0;
                 const maxChecks = 600; // ~20 minutes max wait
                 const approvalPoller = setInterval(async () => {
                     approvalChecks++;
-                    const approvedKey = `registration_approved_${insertedRecord?.id}`;
-                    const approved = localStorage.getItem(approvedKey);
                     
-                    if (approved) {
+                    // Check Supabase for admin approval
+                    let isApproved = false;
+                    if (sbClient && insertedRecord && insertedRecord.id) {
+                        try {
+                            // Query all columns to see what's available for this user
+                            const { data: user, error } = await sbClient
+                                .from('users')
+                                .select('*')
+                                .eq('id', insertedRecord.id)
+                                .single();
+                            
+                            if (!error && user) {
+                                // Check if admin has approved this user
+                                // Check multiple possible approval column names
+                                isApproved = user.approved === true 
+                                    || user.status === 'approved' 
+                                    || user.is_approved === true;
+                                console.log('Approval check for user', insertedRecord.id, ':', isApproved, 'User data:', user);
+                            } else if (error) {
+                                console.warn('Error checking approval status:', error.message);
+                            }
+                        } catch (err) {
+                            console.warn('Error checking approval status:', err);
+                        }
+                    }
+                    
+                    if (isApproved) {
                         // Admin has approved!
                         clearInterval(approvalPoller);
                         showNotification('Registration approved by admin! Completing your registration...', 'success');
-                        localStorage.removeItem(approvedKey); // Clean up
                         
                         // Re-enable buttons and auto-submit
                         if (confirmBtn) confirmBtn.disabled = false;
@@ -407,6 +439,10 @@
                         showNotification('Admin approval timed out. Please contact support.', 'error');
                         if (confirmBtn) confirmBtn.disabled = false;
                         if (cancelBtn) cancelBtn.disabled = false;
+                    } else {
+                        // Still waiting - show progress
+                        if (confirmBtn) confirmBtn.disabled = true;
+                        if (cancelBtn) cancelBtn.disabled = true; // Block cancel during waiting
                     }
                 }, 2000); // Check every 2 seconds
             });
@@ -414,7 +450,7 @@
     });
     </script>
     <!-- Shared site scripts (payment UI, helpers) -->
-    <script src="/script.js"></script>
+    <script src="../script.js"></script>
     <!-- intl-tel-input JS (loaded after page scripts to ensure it's available when registration.js runs) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js"></script>

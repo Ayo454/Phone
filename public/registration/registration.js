@@ -41,9 +41,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // Initialize Supabase client
 const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-console.log('Registration page initialized with API_BASE_URL:', window.API_BASE_URL);
-console.log('Supabase client:', supabaseClient ? 'Connected' : 'Not available');
-
 // Load application config (from /config.json) so front-end features can be toggled
 window.APP_CONFIG = window.APP_CONFIG || {};
 let APP_CONFIG = window.APP_CONFIG;
@@ -53,7 +50,6 @@ async function loadAppConfig() {
         if (resp && resp.ok) {
             APP_CONFIG = await resp.json();
             window.APP_CONFIG = APP_CONFIG;
-            console.log('Loaded app config:', APP_CONFIG);
         } else {
             console.warn('Could not load /config.json, using defaults');
         }
@@ -271,6 +267,10 @@ async function handleFormSubmit(e) {
         newsletter: document.getElementById('newsletter').checked,
         createdAt: new Date().toISOString()
     };
+    // Add common alternate phone field names to improve compatibility with other parts of the app
+    formData.phone_number = formData.phone;
+    formData.phoneNumber = formData.phone;
+    formData.mobile = formData.phone;
 
     // Show loading state
     const submitBtn = document.getElementById('submitBtn');
@@ -292,6 +292,9 @@ async function handleFormSubmit(e) {
                 lastName: formData.lastName,
                 email: formData.email,
                 phone: formData.phone,
+                phone_number: formData.phone,
+                phoneNumber: formData.phone,
+                mobile: formData.phone,
                 userType: formData.userType,
                 organization: formData.organization,
                 newsletter: formData.newsletter,

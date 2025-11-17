@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml">
     <title>Admin Panel - NATE | National Alliance for Talent Exchange</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- html2pdf for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
     <div class="admin-container">
@@ -24,6 +27,7 @@
                     <li><a href="#register" class="nav-link" data-page="register"><i class="fas fa-clipboard-list"></i> Register</a></li>
                     <li><a href="#payments" class="nav-link" data-page="payments"><i class="fas fa-credit-card"></i> Payments</a></li>
                     <li><a href="#users" class="nav-link" data-page="users"><i class="fas fa-users"></i> Users</a></li>
+                    <li><a href="#resume" class="nav-link" data-page="resume"><i class="fas fa-file-pdf"></i> Resume</a></li>
                     <li><a href="#settings" class="nav-link" data-page="settings"><i class="fas fa-cog"></i> Settings</a></li>
                     <li><a href="#logout" class="nav-link logout" data-page="logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 </ul>
@@ -145,6 +149,8 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
+                                <th>First Name</th>
+                                <th>Last Name</th>
                                 <th>Email</th>
                                 <th>Phone</th>
                                 <th>User Type</th>
@@ -215,6 +221,115 @@
                             <!-- Populated by JavaScript -->
                         </tbody>
                     </table>
+                </section>
+
+                <!-- Resume Page -->
+                <section id="resume-page" class="page">
+                    <div class="page-header">
+                        <h3>Professional Resume</h3>
+                        <div class="page-actions">
+                            <button id="downloadResume" class="btn btn-primary"><i class="fas fa-download"></i> Download PDF</button>
+                            <button id="printResume" class="btn btn-secondary"><i class="fas fa-print"></i> Print</button>
+                        </div>
+                    </div>
+                    <div class="resume-tools">
+                        <label for="applicantSelect" class="resume-label">Select Applicant:</label>
+                        <select id="applicantSelect" class="applicant-select"></select>
+                        <button id="refreshApplicants" class="btn btn-secondary" title="Refresh applicant list"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+
+                    <div class="resume-container">
+                        <div class="resume">
+                            <!-- Header -->
+                            <div class="resume-header">
+                                <h1 id="resumeName">—</h1>
+                                <p class="resume-title" id="resumeTitle">Applicant</p>
+                                <div class="resume-contact" id="resumeContact">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+
+                            <!-- Professional Summary -->
+                            <div class="resume-section">
+                                <h2 class="resume-section-title">Professional Summary</h2>
+                                <p id="resumeSummary">No summary available.</p>
+                            </div>
+
+                            <!-- Experience -->
+                            <div class="resume-section">
+                                <h2 class="resume-section-title">Professional Experience</h2>
+                                
+                                <div id="resumeExperienceList">
+                                    <!-- Experience items injected here per applicant -->
+                                </div>
+                            </div>
+
+                            <!-- Skills -->
+                            <div class="resume-section">
+                                <h2 class="resume-section-title">Technical Skills</h2>
+                                <div class="resume-skills">
+                                    <div class="skill-group">
+                                        <h4>Frontend</h4>
+                                        <p>HTML5, CSS3, JavaScript, React, Vue.js, Bootstrap, Responsive Design</p>
+                                    </div>
+                                    <div class="skill-group">
+                                        <h4>Backend</h4>
+                                        <p>Node.js, Express.js, Python, PHP, RESTful APIs, Microservices</p>
+                                    </div>
+                                    <div class="skill-group">
+                                        <h4>Databases</h4>
+                                        <p>MySQL, PostgreSQL, MongoDB, Supabase, Firebase</p>
+                                    </div>
+                                    <div class="skill-group">
+                                        <h4>Tools & Platforms</h4>
+                                        <p>Git, Docker, AWS, Netlify, Render, VS Code, Figma</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Education -->
+                            <div class="resume-section">
+                                <h2 class="resume-section-title">Education</h2>
+                                
+                                <div class="resume-item">
+                                    <div class="resume-item-header">
+                                        <h3>Bachelor of Science in Computer Science</h3>
+                                        <span class="resume-date">2018</span>
+                                    </div>
+                                    <p class="resume-company">University of Lagos</p>
+                                    <p>GPA: 3.8/4.0</p>
+                                </div>
+
+                                <div class="resume-item">
+                                    <div class="resume-item-header">
+                                        <h3>Full Stack Web Development Bootcamp</h3>
+                                        <span class="resume-date">2019</span>
+                                    </div>
+                                    <p class="resume-company">Tech Academy Nigeria</p>
+                                </div>
+                            </div>
+
+                            <!-- Certifications -->
+                            <div class="resume-section">
+                                <h2 class="resume-section-title">Certifications</h2>
+                                <ul class="resume-list">
+                                    <li>AWS Certified Solutions Architect - Associate</li>
+                                    <li>Google Cloud Professional Cloud Developer</li>
+                                    <li>React Advanced Patterns & Practices</li>
+                                    <li>Full Stack JavaScript Developer Certificate</li>
+                                </ul>
+                            </div>
+
+                            <!-- Languages -->
+                            <div class="resume-section">
+                                <h2 class="resume-section-title">Languages</h2>
+                                <ul class="resume-list">
+                                    <li>English - Fluent</li>
+                                    <li>Yoruba - Native</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- Settings Page -->

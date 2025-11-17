@@ -13,6 +13,12 @@ const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON
 console.log('Admin Panel initialized with API_BASE_URL:', API_BASE_URL);
 console.log('Supabase client:', supabaseClient ? 'Connected' : 'Not available');
 
+// Helper: get phone from user/application object - accounts for different field names
+function getPhone(obj) {
+    if (!obj) return null;
+    return obj.phone || obj.phone_number || obj.phoneNumber || obj.mobile || obj.contact || obj.contact_number || null;
+}
+
 // Track current admin user
 let currentAdminUser = { name: 'Admin' };
 let currentApplicationId = null;
@@ -98,6 +104,9 @@ function handleNavigation(e) {
         loadRegister();
     } else if (page === 'dashboard') {
         loadDashboardData();
+    } else if (page === 'resume') {
+        setupResumeHandlers();
+        loadApplicationsForResume();
     }
 
     // Close sidebar on mobile
@@ -186,14 +195,39 @@ async function loadApplications() {
                 <td>${app.firstName || ''} ${app.lastName || ''}</td>
                 <td>${app.position || 'N/A'}</td>
                 <td>${app.email || 'N/A'}</td>
-                <td>${app.phone || 'N/A'}</td>
+                <td>${getPhone(app) || 'N/A'}</td>
                 <td>${new Date(app.submittedAt || new Date()).toLocaleDateString()}</td>
                 <td><span class="badge badge-${status}">${status}</span></td>
-                <td>
-                    <button class="action-btn view" onclick="viewApplicationDetails(${app.id})">View</button>
-                    <button class="action-btn delete" onclick="deleteApplication(${app.id})">Delete</button>
-                </td>
             `;
+            
+            // Actions cell
+            const actionsTd = document.createElement('td');
+            
+            const viewBtn = document.createElement('button');
+            viewBtn.className = 'action-btn view';
+            viewBtn.textContent = 'View';
+            viewBtn.addEventListener('click', () => viewApplicationDetails(app.id));
+            
+            const approveBtn = document.createElement('button');
+            approveBtn.className = 'action-btn approve';
+            approveBtn.textContent = 'Approve';
+            approveBtn.addEventListener('click', () => approveApplication(app.id, app.email));
+            
+            const rejectBtn = document.createElement('button');
+            rejectBtn.className = 'action-btn reject';
+            rejectBtn.textContent = 'Reject';
+            rejectBtn.addEventListener('click', () => rejectApplication(app.id, app.email));
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'action-btn delete';
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.addEventListener('click', () => deleteApplication(app.id));
+            
+            actionsTd.appendChild(viewBtn);
+            actionsTd.appendChild(approveBtn);
+            actionsTd.appendChild(rejectBtn);
+            actionsTd.appendChild(deleteBtn);
+            row.appendChild(actionsTd);
             tableBody.appendChild(row);
         });
     } catch (err) {
@@ -229,7 +263,7 @@ function viewApplicationDetails(index) {
                             <p><strong>ID:</strong> ${app.id || 'N/A'}</p>
                             <p><strong>Name:</strong> ${app.firstName || ''} ${app.lastName || ''}</p>
                             <p><strong>Email:</strong> ${app.email || 'N/A'}</p>
-                            <p><strong>Phone:</strong> ${app.phone || 'N/A'}</p>
+                            <p><strong>Phone:</strong> ${getPhone(app) || 'N/A'}</p>
                             <p><strong>Position:</strong> ${app.position || 'N/A'}</p>
                             <p><strong>Experience:</strong> ${app.experience || 'N/A'} years</p>
                             <p><strong>Cover Letter:</strong> ${app.coverLetter || 'N/A'}</p>
@@ -273,7 +307,7 @@ async function fetchApplicationFromServer(appId, modalBody) {
                 <p><strong>ID:</strong> ${app.id || app.accountNumber || 'N/A'}</p>
                 <p><strong>Name:</strong> ${app.firstName || ''} ${app.lastName || ''}</p>
                 <p><strong>Email:</strong> ${app.email || 'N/A'}</p>
-                <p><strong>Phone:</strong> ${app.phone || 'N/A'}</p>
+                <p><strong>Phone:</strong> ${getPhone(app) || 'N/A'}</p>
                 <p><strong>Position:</strong> ${app.position || 'N/A'}</p>
                 <p><strong>Experience:</strong> ${app.experience || 'N/A'} years</p>
                 <p><strong>Cover Letter:</strong> ${app.coverLetter || 'N/A'}</p>
@@ -326,7 +360,7 @@ function viewRegistrationDetails(regId) {
                         <p><strong>ID:</strong> ${user.id || 'N/A'}</p>
                         <p><strong>Name:</strong> ${user.first_name || ''} ${user.last_name || ''}</p>
                         <p><strong>Email:</strong> ${user.email || 'N/A'}</p>
-                        <p><strong>Phone:</strong> ${user.phone || 'N/A'}</p>
+                        <p><strong>Phone:</strong> ${getPhone(user) || 'N/A'}</p>
                         <p><strong>User Type:</strong> ${user.user_type || 'N/A'}</p>
                         <p><strong>Organization:</strong> ${user.organization || 'N/A'}</p>
                         <p><strong>Newsletter:</strong> ${user.newsletter_subscribed ? 'Yes' : 'No'}</p>
@@ -343,9 +377,15 @@ function viewRegistrationDetails(regId) {
             const rejectBtn = document.getElementById('rejectBtn');
             // Replace click handlers so they operate on registrations
             if (approveBtn) {
+                // Remove the default approveApplication listener
+                approveBtn.removeEventListener('click', approveApplication);
+                // Add registration-specific handler
                 approveBtn.onclick = () => approveRegistration(regId);
             }
             if (rejectBtn) {
+                // Remove the default rejectApplication listener
+                rejectBtn.removeEventListener('click', rejectApplication);
+                // Add registration-specific handler
                 rejectBtn.onclick = () => rejectRegistration(regId);
             }
         } catch (err) {
@@ -373,7 +413,7 @@ async function fetchRegistrationFromServer(regId, modalBody) {
                 <p><strong>ID:</strong> ${user.id || 'N/A'}</p>
                 <p><strong>Name:</strong> ${user.first_name || ''} ${user.last_name || ''}</p>
                 <p><strong>Email:</strong> ${user.email || 'N/A'}</p>
-                <p><strong>Phone:</strong> ${user.phone || 'N/A'}</p>
+                <p><strong>Phone:</strong> ${getPhone(user) || 'N/A'}</p>
                 <p><strong>User Type:</strong> ${user.user_type || 'N/A'}</p>
                 <p><strong>Organization:</strong> ${user.organization || 'N/A'}</p>
                 <p><strong>Newsletter:</strong> ${user.newsletter_subscribed ? 'Yes' : 'No'}</p>
@@ -407,7 +447,7 @@ async function viewUserDetails(userId) {
             <p><strong>User ID:</strong> ${user.id || 'N/A'}</p>
             <p><strong>Name:</strong> ${user.first_name || ''} ${user.last_name || ''}</p>
             <p><strong>Email:</strong> ${user.email || 'N/A'}</p>
-            <p><strong>Phone:</strong> ${user.phone || 'N/A'}</p>
+            <p><strong>Phone:</strong> ${getPhone(user) || 'N/A'}</p>
             <p><strong>User Type:</strong> ${user.user_type || 'N/A'}</p>
             <p><strong>Organization:</strong> ${user.organization || 'N/A'}</p>
             <p><strong>Newsletter Subscribed:</strong> ${user.newsletter_subscribed ? 'Yes' : 'No'}</p>
@@ -470,12 +510,14 @@ async function deleteRegistration(regId) {
 }
 
 // Approve Application
-async function approveApplication() {
-    if (currentApplicationId !== null) {
-        // Call server endpoint to update status (primary method)
+async function approveApplication(appId, appEmail) {
+    // If called with parameters (from table row), use those; otherwise use currentApplicationId (from modal)
+    const id = appId !== undefined ? appId : currentApplicationId;
+    
+    if (id !== null) {
         try {
-            console.log('📨 Approving application ID:', currentApplicationId);
-            const resp = await fetch(`${API_BASE_URL}/api/applications/${encodeURIComponent(currentApplicationId)}/status`, {
+            console.log('📨 Approving application ID:', id);
+            const resp = await fetch(`${API_BASE_URL}/api/applications/${encodeURIComponent(id)}/status`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'approved' })
@@ -483,23 +525,33 @@ async function approveApplication() {
             const json = await resp.json();
             if (!resp.ok) throw new Error(json.message || 'Approve failed');
             console.log('✅ Application approved successfully from server:', json);
-            alert('Application approved successfully!');
-            closeModal();
+            
+            // Show congratulations message with registration link
+            showApprovalCongratulations(appEmail);
+            
+            if (appId === undefined) {
+                closeModal();
+            }
             loadApplications();
         } catch (err) {
             console.error('❌ Error approving application from server:', err);
-            alert('Error approving application');
+            alert('Error approving application: ' + (err.message || err));
         }
     }
 }
 
 // Reject Application
-async function rejectApplication() {
-    if (currentApplicationId !== null) {
-        // Call server endpoint to update status (primary method)
+async function rejectApplication(appId, appEmail) {
+    // If called with parameters (from table row), use those; otherwise use currentApplicationId (from modal)
+    const id = appId !== undefined ? appId : currentApplicationId;
+    
+    if (id !== null) {
+        const confirmed = appEmail ? confirm(`Reject application for ${appEmail}?`) : true;
+        if (!confirmed) return;
+        
         try {
-            console.log('📨 Rejecting application ID:', currentApplicationId);
-            const resp = await fetch(`${API_BASE_URL}/api/applications/${encodeURIComponent(currentApplicationId)}/status`, {
+            console.log('📨 Rejecting application ID:', id);
+            const resp = await fetch(`${API_BASE_URL}/api/applications/${encodeURIComponent(id)}/status`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'rejected' })
@@ -508,12 +560,107 @@ async function rejectApplication() {
             if (!resp.ok) throw new Error(json.message || 'Reject failed');
             console.log('✅ Application rejected successfully from server:', json);
             alert('Application rejected successfully!');
-            closeModal();
+            if (appId === undefined) {
+                closeModal();
+            }
             loadApplications();
         } catch (err) {
             console.error('❌ Error rejecting application from server:', err);
-            alert('Error rejecting application');
+            alert('Error rejecting application: ' + (err.message || err));
         }
+    }
+}
+
+// Show Approval Congratulations Message
+function showApprovalCongratulations(applicantEmail) {
+    // Create modal backdrop
+    const backdrop = document.createElement('div');
+    backdrop.className = 'congratulations-backdrop';
+    backdrop.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    `;
+    
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'congratulations-modal';
+    modal.style.cssText = `
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        padding: 40px;
+        max-width: 500px;
+        text-align: center;
+        animation: slideUp 0.3s ease-out;
+    `;
+    
+    modal.innerHTML = `
+        <div style="font-size: 60px; margin-bottom: 20px;">🎉</div>
+        <h2 style="color: #059669; margin: 0 0 15px 0; font-size: 28px;">Congratulations!</h2>
+        <p style="color: #555; margin: 0 0 10px 0; font-size: 16px;">Your application has been approved and sent to NATE Company.</p>
+        <p style="color: #888; margin: 0 0 30px 0; font-size: 14px;">Click the button below to complete your registration.</p>
+        
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <a href="https://nateregister.netlify.app" target="_blank" rel="noopener noreferrer" style="
+                background: #059669;
+                color: white;
+                padding: 12px 30px;
+                border-radius: 6px;
+                text-decoration: none;
+                font-weight: 600;
+                transition: background 0.3s;
+                cursor: pointer;
+                border: none;
+                font-size: 16px;
+            " onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">
+                Register Now
+            </a>
+            <button onclick="this.closest('.congratulations-backdrop').remove()" style="
+                background: #e5e7eb;
+                color: #333;
+                padding: 12px 30px;
+                border-radius: 6px;
+                border: none;
+                font-weight: 600;
+                cursor: pointer;
+                font-size: 16px;
+                transition: background 0.3s;
+            " onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='#e5e7eb'">
+                Close
+            </button>
+        </div>
+        
+        <p style="color: #999; margin-top: 20px; font-size: 12px;">Applicant: ${applicantEmail || 'N/A'}</p>
+    `;
+    
+    backdrop.appendChild(modal);
+    document.body.appendChild(backdrop);
+    
+    // Add animation styles
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    `;
+    if (!document.querySelector('style[data-animation]')) {
+        style.setAttribute('data-animation', 'true');
+        document.head.appendChild(style);
     }
 }
 
@@ -638,7 +785,7 @@ async function loadRegister() {
         tableBody.innerHTML = '';
 
         if (!users || users.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="8">No users found</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="10">No users found</td></tr>';
             return;
         }
 
@@ -647,8 +794,10 @@ async function loadRegister() {
 
             row.innerHTML = `
                 <td>${user.id || index + 1}</td>
+                <td>${user.first_name || 'N/A'}</td>
+                <td>${user.last_name || 'N/A'}</td>
                 <td>${user.email || 'N/A'}</td>
-                <td>${user.phone || 'N/A'}</td>
+                <td>${getPhone(user) || 'N/A'}</td>
                 <td>${user.user_type || 'N/A'}</td>
                 <td>${user.organization || 'N/A'}</td>
                 <td>${user.newsletter_subscribed ? 'Yes' : 'No'}</td>
@@ -678,7 +827,7 @@ async function loadRegister() {
         console.error('Error loading users:', err);
         const tableBody = document.getElementById('registersBody');
         if (tableBody) {
-            tableBody.innerHTML = '<tr><td colspan="8">Error loading users</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="10">Error loading users</td></tr>';
         }
     }
 }
@@ -761,14 +910,27 @@ async function approveRegistration(userId, userEmail) {
         if (!proceed) return;
 
         console.log('📨 Sending approve request for user ID:', userId);
-        const resp = await fetch(`${API_BASE_URL}/api/users/${encodeURIComponent(userId)}/status`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'approved' })
-        });
+        
+        // Call server endpoint (Supabase direct updates blocked by RLS policies on anon key)
+        // The server has proper auth to update the users table
+        try {
+            const resp = await fetch(`${API_BASE_URL}/api/users/${encodeURIComponent(userId)}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'approved' })
+            });
 
-        const json = await resp.json().catch(() => ({}));
-        if (!resp.ok) throw new Error(json.message || 'Server approve failed');
+            const json = await resp.json().catch(() => ({}));
+            if (!resp.ok) {
+                console.error('❌ Server approve failed:', json.message || json.error || 'Unknown error');
+                throw new Error(json.message || 'Failed to approve registration');
+            } else {
+                console.log('✅ Registration approved by server:', json);
+            }
+        } catch (err) {
+            console.error('Error calling server endpoint:', err);
+            throw err;
+        }
 
         // For compatibility with the registration page polling (demo), set localStorage key
         try {
@@ -778,7 +940,6 @@ async function approveRegistration(userId, userEmail) {
             console.warn('Could not set localStorage approved key (cross-origin):', e.message);
         }
 
-        console.log('✅ Registration approved by server:', json);
         alert('Registration approved successfully!');
         loadRegister();
     } catch (err) {
@@ -794,14 +955,27 @@ async function rejectRegistration(userId, userEmail) {
         if (!proceed) return;
 
         console.log('📨 Sending reject request for user ID:', userId);
-        const resp = await fetch(`${API_BASE_URL}/api/users/${encodeURIComponent(userId)}/status`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'rejected' })
-        });
+        
+        // Call server endpoint (Supabase direct updates blocked by RLS policies on anon key)
+        // The server has proper auth to update the users table
+        try {
+            const resp = await fetch(`${API_BASE_URL}/api/users/${encodeURIComponent(userId)}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'rejected' })
+            });
 
-        const json = await resp.json().catch(() => ({}));
-        if (!resp.ok) throw new Error(json.message || 'Server reject failed');
+            const json = await resp.json().catch(() => ({}));
+            if (!resp.ok) {
+                console.error('❌ Server reject failed:', json.message || json.error || 'Unknown error');
+                throw new Error(json.message || 'Failed to reject registration');
+            } else {
+                console.log('✅ Registration rejected by server:', json);
+            }
+        } catch (err) {
+            console.error('Error calling server endpoint:', err);
+            throw err;
+        }
 
         // Optionally set a local key to indicate rejection for demo purposes
         try {
@@ -811,7 +985,6 @@ async function rejectRegistration(userId, userEmail) {
             console.warn('Could not set localStorage rejected key (cross-origin):', e.message);
         }
 
-        console.log('✅ Registration rejected by server:', json);
         alert('Registration rejected successfully!');
         loadRegister();
     } catch (err) {
@@ -826,4 +999,193 @@ function logout() {
     // Reload page to reset admin panel
     window.location.reload();
 }
+
+// Resume Page Handlers
+function setupResumeHandlers() {
+    const downloadBtn = document.getElementById('downloadResume');
+    const printBtn = document.getElementById('printResume');
+
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', downloadResumePDF);
+    }
+
+    if (printBtn) {
+        printBtn.addEventListener('click', printResume);
+    }
+}
+
+// Download Resume as PDF
+function downloadResumePDF() {
+    const element = document.querySelector('.resume');
+    const nameEl = document.getElementById('resumeName');
+    const nameSlug = (nameEl && nameEl.textContent ? nameEl.textContent.replace(/\s+/g, '_') : 'applicant').replace(/[^a-zA-Z0-9_\-]/g, '');
+    const opt = {
+        margin: 10,
+        filename: `${nameSlug}_Resume.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+    };
+
+    // Check if html2pdf library is available
+    if (typeof html2pdf !== 'undefined') {
+        html2pdf().set(opt).from(element).save();
+    } else {
+        // Fallback: Use browser's print-to-PDF feature
+        printResume();
+    }
+}
+
+// Print Resume
+function printResume() {
+    window.print();
+}
+
+// Applications cache for resume page
+let applicationsCache = [];
+
+// Load applications and populate the applicant selector on the Resume page
+async function loadApplicationsForResume() {
+    const select = document.getElementById('applicantSelect');
+    const refreshBtn = document.getElementById('refreshApplicants');
+
+    if (!select) return;
+
+    select.innerHTML = '<option>Loading applicants...</option>';
+
+    try {
+        // Try Supabase first
+        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+            const { data: applications, error } = await supabaseClient
+                .from('applications')
+                .select('*')
+                .order('submittedAt', { ascending: false });
+
+            if (!error && applications) {
+                applicationsCache = applications;
+            }
+        }
+
+        // If cache is empty, fallback to server API
+        if (!applicationsCache || applicationsCache.length === 0) {
+            try {
+                const resp = await fetch(`${API_BASE_URL}/api/applications`);
+                if (resp.ok) {
+                    const apps = await resp.json();
+                    applicationsCache = apps || [];
+                }
+            } catch (err) {
+                console.warn('Fallback fetch for applications failed:', err);
+            }
+        }
+
+        // Populate selector
+        select.innerHTML = '';
+        if (!applicationsCache || applicationsCache.length === 0) {
+            select.innerHTML = '<option value="">No applications found</option>';
+            return;
+        }
+
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Choose an applicant to view resume...';
+        select.appendChild(placeholder);
+
+        applicationsCache.forEach(app => {
+            const opt = document.createElement('option');
+            opt.value = app.id;
+            opt.textContent = `${app.firstName || ''} ${app.lastName || ''} — ${app.position || 'Applicant'}`.trim();
+            select.appendChild(opt);
+        });
+
+        // Wire selection change
+        select.onchange = () => {
+            const id = select.value;
+            const app = applicationsCache.find(a => String(a.id) === String(id));
+            if (app) renderResume(app);
+        };
+
+        // Refresh button
+        if (refreshBtn) {
+            refreshBtn.onclick = () => loadApplicationsForResume();
+        }
+
+    } catch (err) {
+        console.error('Error loading applicants for resume:', err);
+        select.innerHTML = '<option value="">Error loading applicants</option>';
+    }
+}
+
+// Render selected application into the resume area
+function renderResume(app) {
+    if (!app) return;
+
+    // Basic header
+    const nameEl = document.getElementById('resumeName');
+    const titleEl = document.getElementById('resumeTitle');
+    const contactEl = document.getElementById('resumeContact');
+    const summaryEl = document.getElementById('resumeSummary');
+    const expListEl = document.getElementById('resumeExperienceList');
+
+    if (nameEl) nameEl.textContent = `${app.firstName || ''} ${app.lastName || ''}`.trim() || 'Applicant';
+    if (titleEl) titleEl.textContent = app.position || 'Applicant';
+
+    // Contact
+    if (contactEl) {
+        const parts = [];
+        if (app.email) parts.push(`<span><i class="fas fa-envelope"></i> ${app.email}</span>`);
+        if (app.phone) parts.push(`<span><i class="fas fa-phone"></i> ${app.phone}</span>`);
+        if (app.location) parts.push(`<span><i class="fas fa-map-marker-alt"></i> ${app.location}</span>`);
+        if (app.website) parts.push(`<span><i class="fas fa-globe"></i> <a href="${app.website}" target="_blank">Website</a></span>`);
+        if (app.linkedin) parts.push(`<span><i class="fab fa-linkedin"></i> <a href="${app.linkedin}" target="_blank">LinkedIn</a></span>`);
+        if (app.resumeUrl) parts.push(`<span><i class="fas fa-file"></i> <a href="${app.resumeUrl}" target="_blank">Original Resume</a></span>`);
+        contactEl.innerHTML = parts.join(' ');
+    }
+
+    // Summary / cover letter
+    if (summaryEl) {
+        summaryEl.textContent = app.summary || app.coverLetter || 'No summary available.';
+    }
+
+    // Experience
+    if (expListEl) {
+        expListEl.innerHTML = '';
+        // If applicant supplied structured experience array, render it. Otherwise show a single entry.
+        if (Array.isArray(app.experience) && app.experience.length > 0) {
+            app.experience.forEach(item => {
+                const node = document.createElement('div');
+                node.className = 'resume-item';
+                node.innerHTML = `
+                    <div class="resume-item-header">
+                        <h3>${item.title || item.role || 'Role'}</h3>
+                        <span class="resume-date">${item.dates || item.period || ''}</span>
+                    </div>
+                    <p class="resume-company">${item.company || ''}</p>
+                    <ul class="resume-list">
+                        ${(item.details || []).map(d => `<li>${d}</li>`).join('')}
+                    </ul>
+                `;
+                expListEl.appendChild(node);
+            });
+        } else if (app.position || app.experienceSummary || app.work) {
+            // Render a single experience block from available fields
+            const node = document.createElement('div');
+            node.className = 'resume-item';
+            node.innerHTML = `
+                <div class="resume-item-header">
+                    <h3>${app.position || (app.work && app.work.title) || 'Experience'}</h3>
+                    <span class="resume-date">${app.dates || ''}</span>
+                </div>
+                <p class="resume-company">${(app.company || (app.work && app.work.company)) || ''}</p>
+                <ul class="resume-list">
+                    <li>${app.experienceSummary || app.work?.summary || app.coverLetter || 'No additional details.'}</li>
+                </ul>
+            `;
+            expListEl.appendChild(node);
+        } else {
+            expListEl.innerHTML = '<p>No experience details provided.</p>';
+        }
+    }
+}
+
 

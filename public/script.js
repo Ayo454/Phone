@@ -6,7 +6,7 @@ const API_BASE_URL = (() => {
         return window.RENDER_API_URL;
     }
     
-    // For localhost/127.0.0.1 dev, use Render instead
+    // For localhost/127.0.0.1 dev, use Render backend
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         return 'https://phone-4hza.onrender.com';
     }
@@ -16,7 +16,12 @@ const API_BASE_URL = (() => {
         return 'https://phone-4hza.onrender.com';
     }
     
-    // Default: use same origin
+    // For Netlify or any other deployed domain, use Render backend
+    if (window.location.hostname.includes('netlify.app') || !window.location.hostname.includes('localhost')) {
+        return 'https://phone-4hza.onrender.com';
+    }
+    
+    // Default: use same origin (localhost only)
     return window.location.origin;
 })();
 
@@ -26,7 +31,6 @@ function startBackendKeepalive() {
         try {
             const healthUrl = `${API_BASE_URL}/health`;
             await fetch(healthUrl, { method: 'GET', mode: 'no-cors', cache: 'no-store' });
-            console.log('✓ Backend keepalive ping sent');
         } catch (err) {
             console.warn('Backend keepalive ping failed (may be offline):', err.message);
         }
@@ -266,42 +270,48 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeBtn = document.querySelector('.close-modal');
     const applicationForm = document.getElementById('applicationForm');
 
-    // Close modal when clicking the close button
-    closeBtn.onclick = function() {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
-
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        if (event.target === modal) {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
+    // Only set up application form handlers if the form exists (skip on registration page)
+    if (applicationForm) {
+        // Close modal when clicking the close button
+        if (closeBtn) {
+            closeBtn.onclick = function() {
+                if (modal) {
+                    modal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                }
+            }
         }
-    }
 
-    // Handle form submission
-    // New flow: save the form data in-memory, show payment options first.
-    applicationForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        // Create FormData to handle file upload and submit directly (no payment required)
-        const formData = new FormData();
-        formData.append('position', document.getElementById('position').value);
-        formData.append('firstName', document.getElementById('firstName').value);
-        formData.append('lastName', document.getElementById('lastName').value);
-        formData.append('email', document.getElementById('email').value);
-        formData.append('phone', document.getElementById('phone').value);
-        formData.append('experience', document.getElementById('experience').value);
-        formData.append('coverLetter', document.getElementById('coverLetter').value);
-        // Use 'on' to match server checks for terms
-        formData.append('terms', document.getElementById('terms').checked ? 'on' : 'off');
-
-        // Add resume file if selected
-        const resumeInput = document.getElementById('resume');
-        if (resumeInput && resumeInput.files.length > 0) {
-            formData.append('resume', resumeInput.files[0]);
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
         }
+
+        // Handle form submission
+        // New flow: save the form data in-memory, show payment options first.
+        applicationForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Create FormData to handle file upload and submit directly (no payment required)
+            const formData = new FormData();
+            formData.append('position', document.getElementById('position').value);
+            formData.append('firstName', document.getElementById('firstName').value);
+            formData.append('lastName', document.getElementById('lastName').value);
+            formData.append('email', document.getElementById('email').value);
+            formData.append('phone', document.getElementById('phone').value);
+            formData.append('experience', document.getElementById('experience').value);
+            formData.append('coverLetter', document.getElementById('coverLetter').value);
+            // Use 'on' to match server checks for terms
+            formData.append('terms', document.getElementById('terms').checked ? 'on' : 'off');
+
+            // Add resume file if selected
+            const resumeInput = document.getElementById('resume');
+            if (resumeInput && resumeInput.files.length > 0) {
+                formData.append('resume', resumeInput.files[0]);
+            }
 
         // Submit directly to server
         await submitApplication(formData);
@@ -350,6 +360,7 @@ document.addEventListener('DOMContentLoaded', function() {
             await submitApplication(fd);
         });
     }
+    }  // Close the if(applicationForm) block
 });
 
 // Handle navigation click
@@ -360,6 +371,21 @@ function handleNavClick(e) {
     
     if (targetSection) {
         targetSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // If mobile menu is open, close it after clicking a link
+    try {
+        const navContainer = document.querySelector('.nav-links');
+        const mobileBtn = document.querySelector('.mobile-menu-btn');
+        if (navContainer && navContainer.classList.contains('active')) {
+            navContainer.classList.remove('active');
+            if (mobileBtn) {
+                mobileBtn.classList.remove('active');
+                mobileBtn.setAttribute('aria-expanded', 'false');
+            }
+        }
+    } catch (err) {
+        // Non-fatal; continue
     }
 }
 
@@ -475,8 +501,10 @@ const navLinks = document.querySelector('.nav-links');
 
 if (mobileMenuBtn) {
     mobileMenuBtn.addEventListener('click', () => {
-        navLinks.classList.toggle('active');
+        const isActive = navLinks.classList.toggle('active');
         mobileMenuBtn.classList.toggle('active');
+        // Update aria-expanded for accessibility
+        mobileMenuBtn.setAttribute('aria-expanded', String(isActive));
     });
 }
 
