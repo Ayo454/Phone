@@ -211,17 +211,20 @@ async function loadApplications() {
             const approveBtn = document.createElement('button');
             approveBtn.className = 'action-btn approve';
             approveBtn.textContent = 'Approve';
-            approveBtn.addEventListener('click', () => approveApplication(app.id, app.email));
+            // Use accountNumber when available (matches local file), otherwise fall back to app.id
+            approveBtn.addEventListener('click', () => approveApplication(app.accountNumber || app.id, app.email));
             
             const rejectBtn = document.createElement('button');
             rejectBtn.className = 'action-btn reject';
             rejectBtn.textContent = 'Reject';
-            rejectBtn.addEventListener('click', () => rejectApplication(app.id, app.email));
+            // Use accountNumber when available (matches local file), otherwise fall back to app.id
+            rejectBtn.addEventListener('click', () => rejectApplication(app.accountNumber || app.id, app.email));
             
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'action-btn delete';
             deleteBtn.textContent = 'Delete';
-            deleteBtn.addEventListener('click', () => deleteApplication(app.id));
+            // Use accountNumber when available (matches local file), otherwise fall back to app.id
+            deleteBtn.addEventListener('click', () => deleteApplication(app.accountNumber || app.id));
             
             actionsTd.appendChild(viewBtn);
             actionsTd.appendChild(approveBtn);
