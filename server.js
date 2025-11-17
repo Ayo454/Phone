@@ -1600,12 +1600,12 @@ app.put('/api/users/:id/status', express.json(), async (req, res) => {
                     .select();
 
                 if (error) {
-                    console.error('Supabase update error for user status:', error.message || error);
-                    return res.status(500).json({ success: false, message: 'Failed to update user status in Supabase', error: error.message || error });
+                    console.warn('Supabase update error for user status:', error.message || error);
+                    // Don't return here; fall back to file-based update below if Supabase schema doesn't have `status`.
+                } else {
+                    console.log(`✓ User ${id} status updated in Supabase → ${status}`);
+                    return res.json({ success: true, message: `User status updated to ${status}`, data });
                 }
-
-                console.log(`✓ User ${id} status updated in Supabase → ${status}`);
-                return res.json({ success: true, message: `User status updated to ${status}`, data });
             } catch (err) {
                 console.error('Error updating user status in Supabase:', err.message || err);
                 // fallthrough to file fallback
