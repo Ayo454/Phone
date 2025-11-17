@@ -1535,6 +1535,7 @@ app.put('/api/applications/:identifier/status', express.json(), async (req, res)
         // First try to update in Supabase (applications table)
         if (supabase) {
             try {
+                // Try by id first
                 const { data, error } = await supabase
                     .from('applications')
                     .update({ status, updatedAt: new Date().toISOString() })
@@ -1542,13 +1543,22 @@ app.put('/api/applications/:identifier/status', express.json(), async (req, res)
                     .select();
 
                 if (data && data.length > 0) {
-                    console.log(`✓ Application ${identifier} status updated in Supabase: ${status}`);
-                    return res.json({
-                        success: true,
-                        message: `Application ${status} successfully!`,
-                        data: data[0]
-                    });
+                    console.log(`✓ Application ${identifier} status updated in Supabase by id: ${status}`);
+                    return res.json({ success: true, message: `Application ${status} successfully!`, data: data[0] });
                 }
+
+                // If not found by id, try by accountNumber column (some records come from local file)
+                const { data: dataByAcct, error: errByAcct } = await supabase
+                    .from('applications')
+                    .update({ status, updatedAt: new Date().toISOString() })
+                    .eq('accountNumber', identifier)
+                    .select();
+
+                if (dataByAcct && dataByAcct.length > 0) {
+                    console.log(`✓ Application ${identifier} status updated in Supabase by accountNumber: ${status}`);
+                    return res.json({ success: true, message: `Application ${status} successfully!`, data: dataByAcct[0] });
+                }
+
             } catch (err) {
                 console.warn('Supabase update failed, trying local file:', err.message);
             }
